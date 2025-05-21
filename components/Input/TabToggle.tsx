@@ -1,0 +1,254 @@
+import { useRefresh } from '@/Context/RefreshContext';
+import { colors } from '@/css/colorsIndex';
+import { getAttendanceSummary, getCalender, getLoggedInUserAttendance, reset } from '@/features/Attendance/attendanceSlice';
+import { useAppDispatch, useAppSelector } from '@/hooks/hooks';
+import AttendanceCard from '@/screens/App/Attendance/AttendanceCard';
+import CalendarMonth from '@/screens/App/Attendance/CalenderMonth';
+import Summary from '@/screens/App/Attendance/Summary';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, View, Text, Alert, RefreshControl } from 'react-native';
+import { Tab, TabView } from '@rneui/themed';
+import ContextMenu from '../ContextMenu';
+import { tabItems } from '../data';
+import { RootState } from '@/utils/store';
+
+
+
+
+// Define props for the TabToggle component
+interface TabToggleProps {
+	snackbarVisible: boolean;
+	setSnackbarVisible: (visible: boolean) => void;
+	setMessages: (message: string) => void;
+}
+
+// Define the attendance day type
+interface AttendanceDay {
+	_id: string;
+	userId: string;
+	date: string;
+	morningCheckIn: string | null;
+	morningCheckout: string | null;
+	afternoonCheckIn: string | null;
+	afternoonCheckout: string | null;
+	duration: number;
+	overtimeLateDiff: number;
+	status: string;
+}
+
+// Define the Redux state types
+interface AttendanceState {
+	data: { data: { attendance: AttendanceDay } } | null;
+	isLoading: boolean;
+	isError: boolean;
+	message: string | null;
+	summarydata: any; // Replace `any` with the actual summary data type
+	summaryisLoading: boolean;
+	summaryisError: boolean;
+	summarymessage: string | null;
+	calenderdata: any; // Replace `any` with the actual calendar data type
+	calenderisLoading: boolean;
+	calenderisError: boolean;
+	calendermessage: string | null;
+	snackbarVisible: boolean;
+	setSnackbarVisible: (visible: boolean) => void;
+	setMessages: (message: string) => void;
+}
+
+const TabToggle: React.FC<AttendanceState> = ({ setSnackbarVisible, setMessages }) => {
+	const { data, isLoading, isError, message, summarydata, summaryisLoading, summaryisError, summarymessage, calenderdata, calenderisLoading, calenderisError, calendermessage }: any = useAppSelector((state) => state.attendance);
+	const { } = useAppSelector((state: RootState) => state.clock);
+
+	const { refreshing, onRefresh } = useRefresh(); // Assuming `useRefresh` is custom hook
+	const [index, setIndex] = useState<number>(0);
+	const [month, setMonth] = useState<number | any>({ number: new Date().getMonth() + 1 });
+	const dispatch = useAppDispatch();
+	const day = data?.data?.attendance;
+	const months = month.number;
+
+
+	useEffect(() => {
+		setIndex(0); // Reset tab on initial load
+	}, []);
+
+	// Fetch data based on the selected tab
+	const fetchDataForTab = useCallback(() => {
+		if (index === 0) {
+			// Attendance Tab
+			dispatch(getLoggedInUserAttendance());
+		} else if (index === 1) {
+			// Calendar Tab
+			dispatch(getCalender(months));
+		} else if (index === 2) {
+			// Summary Tab
+			dispatch(getAttendanceSummary(months));
+		}
+	}, [index, dispatch, months]);
+
+	useEffect(() => {
+		fetchDataForTab();
+	}, [index, fetchDataForTab]);
+
+	useEffect(() => {
+		if (refreshing === true) {
+			fetchDataForTab();
+		}
+	}, [refreshing, fetchDataForTab, onRefresh]);
+
+	useEffect(() => {
+		if (
+			day &&
+			day.morningCheckIn === null &&
+			day.morningCheckout === null &&
+			day.afternoonCheckIn === null &&
+			day.afternoonCheckout === null
+		) {
+			setSnackbarVisible(true); // Show the Snackbar
+			setMessages("No Attendance Data Found");
+		}
+	}, [day, setSnackbarVisible, setMessages]);
+
+
+
+	// Consolidated Error Handling
+	useEffect(() => {
+		const errors = [];
+		if (isError && message) errors.push(message);
+		if (summaryisError && summarymessage) errors.push(summarymessage);
+		if (calenderisError && calendermessage) errors.push(calendermessage);
+
+		if (errors.length > 0) {
+			Alert.alert(
+				"",
+				errors.join("\n"),
+				[{ text: "Ok" }]
+			);
+			dispatch(reset()); // Reset state after showing the alert
+		}
+	}, [isError, summaryisError, calenderisError, message, summarymessage, calendermessage, dispatch]);
+
+
+
+
+	return (
+		<View style={styles.mainContainer}>
+			<View style={styles.tabContainer}>
+				<Tab
+					value={index}
+					onChange={(e) => setIndex(e)}
+					indicatorStyle={styles.indicatorStyle}
+					variant="default"
+				>
+					{tabItems?.map((item, i) => (
+						<Tab.Item
+							key={i}
+							title={
+								<Text style={[styles.title, { color: index === i ? colors.white : '#667085' }]}>
+									{item.title}
+								</Text>
+							}
+							titleStyle={[
+								styles.labelStyle,
+								{ color: index === i ? colors.white : '#667085' },
+							]}
+						/>
+					))}
+				</Tab>
+				<ContextMenu setMonth={setMonth} />
+			</View>
+
+
+			<View style={styles.card_list_scroll_container}>
+				<TabView value={index} onChange={setIndex}>
+					<TabView.Item key={`tab-${index}`} style={{ width: '100%' }}>
+						<ScrollView
+							style={styles.card_list_scroll_container}
+							refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+						>
+							<AttendanceCard
+								selectedDateDetails={day}
+								isLoading={!refreshing && isLoading}
+								topTime={false}
+							/>
+						</ScrollView>
+					</TabView.Item>
+					<TabView.Item key={`tab-${index}`} style={{ width: '100%' }}>
+						<ScrollView style={styles.card_list_scroll_container}
+							refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+						>
+							<CalendarMonth
+								months={months}
+								calenderdata={calenderdata}
+								calenderisLoading={!refreshing && calenderisLoading} />
+						</ScrollView>
+					</TabView.Item>
+					<TabView.Item key={`tab-${index}`} style={{ width: '100%' }}>
+						<ScrollView style={styles.card_list_scroll_container}
+							refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+						>
+							<Summary
+								summarydata={summarydata}
+								summaryisLoading={!refreshing && summaryisLoading}
+							/>
+						</ScrollView>
+					</TabView.Item>
+				</TabView>
+			</View>
+		</View >
+	);
+};
+
+
+export default TabToggle;
+
+const styles = StyleSheet.create({
+
+	title: {
+		color: colors.white,
+		zIndex: 1,
+		marginBottom: 1,
+	},
+	mainContainer: {
+		flexGrow: 1,
+	},
+	tabContainer: {
+		paddingVertical: 4,
+		paddingHorizontal: 3,
+		height: 44,
+		backgroundColor: colors.white,
+		borderWidth: 1,
+		borderColor: colors.gray300,
+		borderRadius: 8,
+		marginTop: 24,
+		marginHorizontal: 20,
+		gap: 20,
+		zIndex: -2
+	},
+
+
+	indicatorStyle: {
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'center',
+		// paddingVertical: 6,
+		height: '100%',
+		borderRadius: 6,
+		backgroundColor: colors.accent_blue,
+		color: colors.white,
+		zIndex: -1
+	},
+	labelStyle: {
+		fontFamily: 'Inter',
+		fontStyle: 'normal',
+		fontWeight: '500',
+		fontSize: 12,
+	},
+
+	card_list_scroll_container: {
+		paddingHorizontal: 10,
+		marginTop: 30,
+		marginBottom: 0,
+		flex: 1
+	},
+});
+

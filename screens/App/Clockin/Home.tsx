@@ -1,8 +1,7 @@
 import { Alert, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import Headline from '@/components/Headline'
 import { colors } from '@/css/colorsIndex';
-import { Avater } from '@/assets/svg/Avater';
 import { BgHome } from '@/assets/svg/BgHome';
 import DaysCard from './DaysCard';
 import { BgUser } from '@/assets/svg/BgUser';
@@ -15,11 +14,10 @@ import { loginUser } from '@/features/clockInandOut/clockInSlice';
 import AttendanceCard from '../Attendance/AttendanceCard';
 import { getLoggedInUserAttendance, reset } from '@/features/Attendance/attendanceSlice';
 import { RootState } from '@/utils/store';
-import { getUserProfile, reset as resetprofile } from '@/features/Profile/profileSlice';
 import { logoutUser } from '@/slices/authSlice';
 import { useCurrentDate } from '@/Context/DateProvider';
-
-
+import { processAttendanceData, transformLoginDataToSelectedDateDetails } from '@/components/Options';
+import StatusView from './StatusView';
 
 // Define type for the Home component props
 type HomeProps = {
@@ -31,9 +29,14 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 	const { logindata } = useAppSelector((state: any) => state.clock);
 	const { refreshing, onRefresh } = useRefresh();
 	const { data, isLoading, message, isError } = useAppSelector((state: RootState) => state.attendance);
-	const { profileData, profileIsLoading, profileMessage, profileIsError } = useAppSelector((state: RootState) => state.profile);
-	const day = data?.data?.attendance
+	const day = !data?.data?.data?.data ? [] : data?.data?.data?.data
+	const id = logindata?.data?.user?.id
 	const { currentDate } = useCurrentDate();
+	const selectedDateDetails = transformLoginDataToSelectedDateDetails(day[0]);
+	const { totalWorkedHours, lateArrivals } = processAttendanceData(day);
+	const entry = day[0]; // or find based on a condition
+	const clockIn = entry?.clockIn;
+	const clockOut = entry?.clockOut;
 
 
 	const formattedTime = currentDate.toLocaleTimeString('en-US', {
@@ -43,9 +46,11 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 	});
 
 
+
+
 	useEffect(() => {
-		if (isError || profileIsError) {
-			const errorMessages = [message, profileMessage];
+		if (isError) {
+			const errorMessages = [message];
 
 			// Check for "Invalid token" in any of the messages
 			if (errorMessages.includes("Invalid token")) {
@@ -63,17 +68,13 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 			// Centralized dispatch reset
 			const resets = {
 				reset: () => dispatch(reset()),
-				resetprofile: () => dispatch(resetprofile()),
+				// resetprofile: () => dispatch(resetprofile()),
 			};
 
 			Object.values(resets).forEach((resetFn) => resetFn());
 
 		}
-	}, [isError, profileIsError, message, profileMessage, dispatch]);
-
-
-
-
+	}, [isError, message, dispatch]);
 
 
 	useEffect(() => {
@@ -81,8 +82,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 			try {
 				// Await dispatches if you need to handle responses sequentially
 				await dispatch(loginUser()).unwrap();
-				await dispatch(getUserProfile()).unwrap();
-				await dispatch(getLoggedInUserAttendance()).unwrap();
+				await dispatch(getLoggedInUserAttendance(id)).unwrap();
 			} catch (error) {
 				// Explicitly cast error to Error to access its properties 
 			}
@@ -97,8 +97,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 				try {
 					// Dispatch actions and handle responses sequentially
 					await dispatch(loginUser()).unwrap();
-					await dispatch(getUserProfile()).unwrap();
-					await dispatch(getLoggedInUserAttendance()).unwrap();
+					await dispatch(getLoggedInUserAttendance(id)).unwrap();
 				} catch (error) {
 					// Explicitly handle the error 
 				}
@@ -117,7 +116,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 
 	return (
 		<View style={styles.container}>
-			<Headline navigation={navigation} user={!profileData ? logindata : profileData} profileIsLoading={profileIsLoading} />
+			<Headline navigation={navigation} user={logindata} profileIsLoading={isLoading} />
 			<ScrollView
 				refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
 				contentInsetAdjustmentBehavior="automatic"
@@ -125,14 +124,12 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 			>
 				<View style={styles.top_container}>
 					<View style={styles.clockIn_icon_container}>
-						<View style={styles.userStatus}>
-							<View>
-								<Text style={styles.userStatusText}>Status</Text>
-							</View>
-							<View style={styles.userStatus_text_out}>
-								<Text style={styles.userStatus_out_text}>Clocked In</Text>
-							</View>
-						</View>
+
+						<StatusView entry={{
+							clockIn: clockIn,
+							clockOut: clockOut
+						}} />
+
 						<View style={styles.text_time_sub_container}>
 							<Text style={styles.text_time}>{formattedDate}</Text>
 							<Text style={styles.text_time_sub}>{formattedTime}</Text>
@@ -151,13 +148,13 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 							<DaysCard
 								toptext="Worked hours"
 								icon={<BgHome />}
-								text={`${0} hrs`}
+								text={`${totalWorkedHours} hrs`}
 								loading={false}
 							/>
 							<DaysCard
-								toptext="Late	arrivals"
+								toptext="Late arrivals"
 								icon={<BgUser />}
-								text={`${0} Days`}
+								text={`${lateArrivals} Days`}
 								loading={false}
 							/>
 						</View>
@@ -167,8 +164,8 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 					<View style={styles.daysCardContainer}>
 						{!refreshing && isLoading ? "" : <Text style={styles.overviewText}>Clocking time</Text>}
 						<AttendanceCard
-							topTime={false}
-							selectedDateDetails={day}
+							topTime={true}
+							selectedDateDetails={selectedDateDetails}
 							isLoading={!refreshing && isLoading}
 						/>
 					</View>
@@ -181,6 +178,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 export default Home;
 
 const styles = StyleSheet.create({
+
 
 	scrollViewContent: {
 		paddingBottom: 100,
@@ -297,16 +295,7 @@ const styles = StyleSheet.create({
 		backgroundColor: '#09C16929',
 		borderRadius: 5,
 	},
-	userStatusText: {
-		width: 38,
-		height: 18,
-		fontFamily: 'Inter',
-		fontStyle: 'normal',
-		fontWeight: '500',
-		fontSize: 12,
-		lineHeight: 18,
-		color: colors.gray500,
-	},
+
 
 	userStatus: {
 		flexDirection: 'row',
@@ -345,3 +334,5 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.background,
 	}
 })
+
+

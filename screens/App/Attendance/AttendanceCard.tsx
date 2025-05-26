@@ -7,10 +7,8 @@ type SelectedDateDetails = {
 	day: string;
 	status: string;
 	date: string;
-	morningCheckIn?: string | null;
-	morningCheckout?: string | null;
-	afternoonCheckIn?: string | null;
-	afternoonCheckout?: string | null;
+	clockOut?: string | null;
+	clockIn?: string | null;
 };
 
 type AttendanceCardProps = {
@@ -20,11 +18,20 @@ type AttendanceCardProps = {
 };
 
 const AttendanceCard: React.FC<AttendanceCardProps> = ({ selectedDateDetails, isLoading, topTime }) => {
+
+
 	// Transform the attendance object into a usable array for rendering
 	const clockTimes = [
-		{ label: "Morning Clock In time", time: selectedDateDetails?.morningCheckIn ? new Date(selectedDateDetails?.morningCheckIn).toLocaleTimeString() : "00:00 AM" },
-		{ label: "Morning Clock Out time", time: selectedDateDetails?.morningCheckout ? new Date(selectedDateDetails?.morningCheckout).toLocaleTimeString() : "00:00 AM" },
+		{
+			label: "Clock In time",
+			time: selectedDateDetails?.clockIn ?? "00:00",
+		},
+		{
+			label: "Clock Out time",
+			time: selectedDateDetails?.clockOut ?? "00:00",
+		},
 	];
+
 
 	// Determine styles based on the status
 	const getStatusStyles = (status: string) => {
@@ -75,7 +82,7 @@ const AttendanceCard: React.FC<AttendanceCardProps> = ({ selectedDateDetails, is
 					{topTime &&
 						<View style={styles.time_container_main}>
 							{/* Render the formatted date */}
-							<Text>{moment(selectedDateDetails?.date).format('D-MMM-YYYY')}</Text>
+							<Text>{selectedDateDetails?.date === "Invalid date" ? "" : moment(selectedDateDetails?.date).format('D-MMM-YYYY')}</Text>
 							{selectedDateDetails?.status && (
 								<View style={containerStyle}>
 									<Text style={textStyle}>{selectedDateDetails?.status}</Text>
@@ -297,3 +304,5 @@ const styles = StyleSheet.create({
 		gap: 28,
 	},
 });
+
+

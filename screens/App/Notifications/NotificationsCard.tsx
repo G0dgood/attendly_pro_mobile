@@ -1,12 +1,13 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import { Close } from '@/assets/svg/Close'
-import { BlueClock } from '@/assets/svg/BlueClock'
-import { BlueTicket } from '@/assets/svg/BlueTicket'
 import { colors } from '@/css/colorsIndex'
 import { RootStackParamList } from '@/types'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import NotificationsModal from './NotificationsModal'
+import { BlueRightAngle } from '@/assets/svg/BlueRightAngle'
+import { useAppSelector } from '@/hooks/hooks'
+import { generateNotifications } from '@/components/Options'
 
 // Define type for the Notifications component props
 type NotificationsProps = {
@@ -14,62 +15,69 @@ type NotificationsProps = {
 };
 
 const NotificationsCard: React.FC<NotificationsProps> = () => {
-	const notifications = [
-		{
-			id: 1,
-			icon: <BlueClock />,
-			title: "Clock In reminder",
-			message: "Remember to clock In after your lunch break at your workplace, try not to be late.",
-			date: "23/10/24"
-		},
-		{
-			id: 2,
-			icon: <BlueClock />,
-			title: "Clock In reminder",
-			message: "Lunch time is here, remember to clock out.",
-			date: "23/10/24"
-		},
-		{
-			id: 3,
-			icon: <BlueTicket />,
-			title: "Login alert",
-			message: "Review for your login request applied on 12/10/24 has arrived.",
-			date: "23/10/24"
-		}
-	];
+	const { calenderdata }: any = useAppSelector((state) => state.attendance);
+	const attendanceData = calenderdata?.data?.data?.data || [];
+
+	const [selectedNotification, setSelectedNotification] = useState(null);
+
+	const openModal = (notification: any) => {
+		setSelectedNotification(notification);
+	};
+
+	const closeModal = () => {
+		setSelectedNotification(null);
+	};
+
+
+
+	const notifications = generateNotifications(attendanceData); // from previous logic
 
 	return (
 		<View style={styles.top_container}>
-			{notifications.map((notification) => (
+			{notifications?.map((notification: any) => (
 				<View key={notification.id} style={styles.card}>
 					{notification.icon}
 					<View style={styles.text_title_container}>
 						<View>
 							<View style={styles.title_container}>
 								<Text style={styles.title}>{notification.title}</Text>
-								<TouchableOpacity  >
+								<TouchableOpacity>
 									<Close />
 								</TouchableOpacity>
 							</View>
 							<Text style={styles.reminderText}>{notification.message}</Text>
 						</View>
 						<View style={styles.time_container}>
-							<View>
-								<Text style={styles.dateText}>{notification.date}</Text>
-							</View>
-							{/* NotificationsModal */}
-							<NotificationsModal />
+							<Text style={styles.dateText}>{notification.date}</Text>
+							<TouchableOpacity style={styles.go_container} onPress={() => openModal(notification)}>
+								<Text  >Go</Text>
+								<BlueRightAngle />
+							</TouchableOpacity>
 						</View>
 					</View>
 				</View>
 			))}
+
+			{/* Modal for notification details */}
+			<NotificationsModal
+				visible={!!selectedNotification}
+				onClose={closeModal}
+				notification={selectedNotification}
+			/>
 		</View>
-	)
-}
+	);
+};
 
 export default NotificationsCard
 
 const styles = StyleSheet.create({
+
+
+	go_container: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 5,
+	},
 
 
 	dateText: {

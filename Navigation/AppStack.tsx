@@ -10,11 +10,8 @@ import Notifications from '@/screens/App/Notifications/Notifications';
 import Profile from '@/screens/App/Profile/Profile';
 import ChangePassword from '@/screens/App/Profile/ChangePassword';
 import Success from '@/screens/App/Profile/Success';
-import NotificationsSettings from '@/screens/App/Profile/NotificationsSettings';
-import ChangeProfilePicture from '@/screens/App/Profile/ChangeProfilePicture';
-import ChangeProfileWithCamera from '@/screens/App/Profile/ChangeProfileWithCamera';
 import SuccessProfile from '@/screens/App/Profile/SuccessProfile';
-
+import Successs from '@/screens/App/Clockin/Success';
 // Define the type for the stack navigator's routes 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -44,14 +41,13 @@ const RootNavigator: React.FC = () => {
 			<Stack.Screen name="Notifications" component={Notifications} />
 			<Stack.Screen name="Profile" component={Profile} />
 			<Stack.Screen name="ChangePassword" component={ChangePassword} />
-			<Stack.Screen name="ChangeProfilePicture" component={ChangeProfilePicture} />
-
-			<Stack.Screen name="ChangeProfileWithCamera" component={ChangeProfileWithCamera} />
-			<Stack.Screen name="NotificationsSettings" component={NotificationsSettings} />
 			<Stack.Screen name="Success" component={Success} options={{
 				headerRight: () => headerRight("Done", styles.done, "Profile")
 			}} />
 			<Stack.Screen name="SuccessProfile" component={SuccessProfile} options={{
+				headerRight: () => headerRight("Done", styles.done, "Homeanek00")
+			}} />
+			<Stack.Screen name="Successs" component={Successs} options={{
 				headerRight: () => headerRight("Done", styles.done, "Homeanek00")
 			}} />
 			<Stack.Group screenOptions={{ presentation: 'modal' }}>

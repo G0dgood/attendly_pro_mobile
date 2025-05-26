@@ -1,9 +1,28 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import attendanceService from './attendanceService';
 
-// Define the structure of the state
-interface AttendanceState {
-  data: AttendanceInfo | null;
+// Define the CalendarQueryParams type
+export type CalendarQueryParams = { 
+  id?: string;
+  page?: number;
+  limit?: number;
+  filterByDate?: 'today' | 'range';
+  startDate?: string;
+  endDate?: string;
+};
+
+// Define the CalendarData type
+export type CalendarData = {
+  id: number;
+  date: string;
+  events: string[];
+};
+
+ 
+
+// Define the initial state
+const initialState: {
+  data: any;
   isError: boolean;
   isSuccess: boolean;
   isLoading: boolean;
@@ -15,15 +34,12 @@ interface AttendanceState {
   calenderisLoading: boolean;
   calendermessage: string;
 
-  summarydata: AttendanceSummary | null;
-  summaryisError: boolean;
-  summaryisSuccess: boolean;
-  summaryisLoading: boolean;
-  summarymessage: string;
-}
-
-// Define the initial state
-const initialState: AttendanceState = {
+  handleAttendancedata: any;
+  handleAttendanceisError: boolean;
+  handleAttendanceisSuccess: boolean;
+  handleAttendanceisLoading: boolean;
+  handleAttendancemessage: string;
+} = {
   data: null,
   isError: false,
   isSuccess: false,
@@ -36,21 +52,17 @@ const initialState: AttendanceState = {
   calenderisLoading: false,
   calendermessage: '',
 
-  summarydata: null,
-  summaryisError: false,
-  summaryisSuccess: false,
-  summaryisLoading: false,
-  summarymessage: '',
+  handleAttendancedata: null,
+  handleAttendanceisError: false,
+  handleAttendanceisSuccess: false,
+  handleAttendanceisLoading: false,
+  handleAttendancemessage: '',
 };
 
 // Thunk to get logged-in user attendance
-export const getLoggedInUserAttendance = createAsyncThunk<
-  AttendanceInfo,
-  void,
-  { rejectValue: string }
->('clock/getLoggedInUserAttendance', async (_, thunkAPI) => {
+export const getLoggedInUserAttendance = createAsyncThunk('attendance/getLoggedInUserAttendance', async (id: string, thunkAPI) => {
   try {
-    return await attendanceService.getLoggedInUserAttendance();
+    return await attendanceService.getLoggedInUserAttendance(id);
   } catch (error: any) {
     const message =
       (error.response?.data?.message ||
@@ -62,40 +74,40 @@ export const getLoggedInUserAttendance = createAsyncThunk<
 });
 
 // Thunk to get calendar data
-export const getCalender:any = createAsyncThunk<
-  CalendarData[],
-  number,
-  { rejectValue: string }
->('clock/getCalender', async (day, thunkAPI) => {
-  try {
-    return await attendanceService.getCalender(day);
-  } catch (error: any) {
-    const message =
-      (error.response?.data?.message ||
-        error.response?.data?.errors?.[0]?.message ||
-        error.message ||
-        error.toString()) as string;
-    return thunkAPI.rejectWithValue(message);
+export const getCalender = createAsyncThunk(
+  'attendance/getCalender',
+  async (params: CalendarQueryParams, thunkAPI) => {
+    try {
+      return await attendanceService.getCalender(params);
+    } catch (error: any) {
+      const message =
+        (error.response?.data?.message ||
+          error.response?.data?.errors?.[0]?.message ||
+          error.message ||
+          error.toString()) as string;
+      return thunkAPI.rejectWithValue(message);
+    }
   }
-});
+);
 
-// Thunk to get attendance summary
-export const getAttendanceSummary:any = createAsyncThunk<
-  AttendanceSummary,
-  number,
-  { rejectValue: string }
->('clock/getAttendanceSummary', async (months, thunkAPI) => {
-  try {
-    return await attendanceService.getAttendanceSummary(months);
-  } catch (error: any) {
-    const message =
-      (error.response?.data?.message ||
-        error.response?.data?.errors?.[0]?.message ||
-        error.message ||
-        error.toString()) as string;
-    return thunkAPI.rejectWithValue(message);
+// Thunk to get calendar data
+export const handleAttendance = createAsyncThunk(
+  'attendance/handleAttendance',
+  async (data:any, thunkAPI) => {
+    try {
+      return await attendanceService.handleAttendance(data);
+    } catch (error: any) {
+      const message =
+        (error.response?.data?.message ||
+          error.response?.data?.errors?.[0]?.message ||
+          error.message ||
+          error.toString()) as string;
+      return thunkAPI.rejectWithValue(message);
+    }
   }
-});
+);
+
+ 
 
 // Attendance slice
 export const attendanceSlice = createSlice({
@@ -113,10 +125,12 @@ export const attendanceSlice = createSlice({
       state.calenderisError = false;
       state.calendermessage = '';
 
-      state.summaryisLoading = false;
-      state.summaryisSuccess = false;
-      state.summaryisError = false;
-      state.summarymessage = '';
+      state.handleAttendanceisLoading = false;
+      state.handleAttendanceisSuccess = false;
+      state.handleAttendanceisError = false;
+      state.handleAttendancemessage = '';
+
+     
     },
   },
   extraReducers: (builder) => {
@@ -125,15 +139,16 @@ export const attendanceSlice = createSlice({
       .addCase(getLoggedInUserAttendance.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(getLoggedInUserAttendance.fulfilled, (state, action: PayloadAction<AttendanceInfo>) => {
+      .addCase(getLoggedInUserAttendance.fulfilled, (state, action) => {
+        
         state.isLoading = false;
         state.isSuccess = true;
         state.data = action.payload;
       })
-      .addCase(getLoggedInUserAttendance.rejected, (state, action: PayloadAction<string | undefined>) => {
+      .addCase(getLoggedInUserAttendance.rejected, (state:any, action ) => {
         state.isLoading = false;
         state.isError = true;
-        state.message = action.payload || '';
+        state.message = action.payload;
         state.data = null;
       })
 
@@ -141,57 +156,43 @@ export const attendanceSlice = createSlice({
       .addCase(getCalender.pending, (state) => {
         state.calenderisLoading = true;
       })
-      .addCase(getCalender.fulfilled, (state, action: PayloadAction<CalendarData[]>) => {
+      .addCase(getCalender.fulfilled, (state: any, action) => { 
         state.calenderisLoading = false;
         state.calenderisSuccess = true;
         state.calenderdata = action.payload;
       })
-      .addCase(getCalender.rejected, (state, action: PayloadAction<string | undefined>) => {
+      .addCase(getCalender.rejected, (state, action) => {
         state.calenderisLoading = false;
         state.calenderisError = true;
-        state.calendermessage = action.payload || '';
+        state.calendermessage = (action.payload as string) || '';
         state.calenderdata = null;
       })
 
-      // Summary
-      .addCase(getAttendanceSummary.pending, (state) => {
-        state.summaryisLoading = true;
+      // Attendance
+      .addCase(handleAttendance.pending, (state) => {
+        state.handleAttendanceisLoading = true;
       })
-      .addCase(getAttendanceSummary.fulfilled, (state, action: PayloadAction<AttendanceSummary>) => {
-        state.summaryisLoading = false;
-        state.summaryisSuccess = true;
-        state.summarydata = action.payload;
+      .addCase(handleAttendance.fulfilled, (state: any, action) => { 
+        state.handleAttendanceisLoading = false;
+        state.handleAttendanceisSuccess = true;
+        state.handleAttendancedata = action.payload;
       })
-      .addCase(getAttendanceSummary.rejected, (state, action: PayloadAction<string | undefined>) => {
-        state.summaryisLoading = false;
-        state.summaryisError = true;
-        state.summarymessage = action.payload || '';
-        state.summarydata = null;
-      });
+      .addCase(handleAttendance.rejected, (state, action) => {
+        state.handleAttendanceisLoading = false;
+        state.handleAttendanceisError = true;
+        state.handleAttendancemessage = (action.payload as string) || '';
+        state.handleAttendancedata = null;
+      })
+
+    
+      
   },
 });
 
 export const { reset } = attendanceSlice.actions;
 export default attendanceSlice.reducer;
 
-// Define response types
-interface AttendanceInfo {
-  morningCheckIn: string | null;
-  morningCheckout: string | null;
-  afternoonCheckIn: string | null;
-  afternoonCheckout: string | null;
-  [key: string]: any; // To handle additional properties
-}
+ 
 
-interface CalendarData {
-  date: string;
-  isHoliday: boolean;
-  events: string[];
-  [key: string]: any; // To handle additional properties
-}
-
-interface AttendanceSummary {
-  totalPresentDays: number;
-  totalAbsentDays: number; 
-  [key: string]: any; // To handle additional properties
-}
+ 
+ 

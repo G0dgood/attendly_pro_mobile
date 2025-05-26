@@ -10,7 +10,7 @@ import { initializeUser } from './slices/authSlice';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { UserProvider } from './Context/UserContext';
 import { DateProvider } from './Context/DateProvider';
-import { registerBackgroundTask } from './features/Notification/TaskManager';
+import { PaperProvider } from 'react-native-paper';
 
 function AppContent() {
   const dispatch = useAppDispatch();
@@ -21,20 +21,21 @@ function AppContent() {
   useEffect(() => {
     // Initialize user session from AsyncStorage
     dispatch(initializeUser());
-    registerBackgroundTask();
   }, [dispatch]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <UserProvider>
-        <DateProvider>
-          <RefreshProvider>
-            <NavigationContainer>
-              {isAuthenticated ? <AppStack /> : <AuthStack />}
-            </NavigationContainer>
-          </RefreshProvider>
-        </DateProvider>
-      </UserProvider>
+      <PaperProvider>
+        <UserProvider>
+          <DateProvider>
+            <RefreshProvider>
+              <NavigationContainer>
+                {isAuthenticated ? <AppStack /> : <AuthStack />}
+              </NavigationContainer>
+            </RefreshProvider>
+          </DateProvider>
+        </UserProvider>
+      </PaperProvider>
     </GestureHandlerRootView>
   );
 }

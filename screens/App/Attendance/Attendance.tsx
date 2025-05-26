@@ -1,7 +1,10 @@
-import React, { Dispatch, SetStateAction } from 'react';
+import React, { Dispatch, SetStateAction, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import TabToggle from '@/components/Input/TabToggle';
-import { Snackbar } from 'react-native-paper';
+import { useAppDispatch, useAppSelector } from '@/hooks/hooks';
+import { getLoggedInUserAttendance } from '@/features/Attendance/attendanceSlice';
+import { loginUser } from '@/features/clockInandOut/clockInSlice';
+import { RootState } from '@/utils/store';
 
 // Define the props for the TabToggle component
 interface TabToggleProps {
@@ -11,8 +14,11 @@ interface TabToggleProps {
 }
 
 const Attendance: React.FC = () => {
-	const [snackbarVisible, setSnackbarVisible] = React.useState<boolean>(false);
 	const [messages, setMessages] = React.useState<string>(''); // Set type as string
+	const dispatch = useAppDispatch();
+	const { logindata } = useAppSelector((state: any) => state.clock);
+	const { data, isLoading, message, isError } = useAppSelector((state: RootState) => state.attendance);
+
 
 	return (
 		<View style={styles.container}>
@@ -21,13 +27,7 @@ const Attendance: React.FC = () => {
 				setSnackbarVisible={setSnackbarVisible}
 				snackbarVisible={snackbarVisible}
 				setMessages={setMessages} data={null} isLoading={false} isError={false} message={null} summarydata={undefined} summaryisLoading={false} summaryisError={false} summarymessage={null} calenderdata={undefined} calenderisLoading={false} calenderisError={false} calendermessage={null} />
-			<Snackbar
-				visible={snackbarVisible}
-				onDismiss={() => setSnackbarVisible(false)}
-				duration={3000} // Snackbar auto-dismiss time
-			>
-				{messages}
-			</Snackbar>
+
 		</View>
 	);
 };

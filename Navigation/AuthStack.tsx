@@ -15,7 +15,6 @@ const AuthStack: React.FC = () => (
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="Success" component={SuccessScreen} />
     <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
-    <Stack.Screen name="ForgetPasswordData" component={ForgotPassword} />
   </Stack.Navigator>
 );
 

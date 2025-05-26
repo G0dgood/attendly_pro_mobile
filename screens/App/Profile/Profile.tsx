@@ -1,29 +1,43 @@
-import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native'
+import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect } from 'react'
 import { useRefresh } from '@/Context/RefreshContext';
 import { colors } from '@/css/colorsIndex';
 import { RightGrayAngle } from '@/assets/svg/RightGrayAngle';
-import { ProfileCamera } from '@/assets/svg/ProfileCamera';
 import { logoutUser } from '@/slices/authSlice';
 import { useDispatch } from 'react-redux';
 import { RootStackParamList } from '@/types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useAppSelector } from '@/hooks/hooks';
-import { RootState } from '@/utils/store';
-import { getUserProfile } from '@/features/Profile/profileSlice';
 import { Skeleton } from '@rneui/base';
-import Header from '@/components/Header';
+import { useAppSelector } from '@/hooks/hooks';
+import { loginUser } from '@/features/clockInandOut/clockInSlice';
 
 // Define type for the Profile component props
 type ProfileProps = {
 	navigation: NativeStackNavigationProp<RootStackParamList, 'Profile'>;
 };
 const Profile: React.FC<ProfileProps> = ({ navigation }) => {
+	const { logindata, loginisLoading } = useAppSelector((state: any) => state.clock);
 	const { refreshing, onRefresh } = useRefresh();
 	const dispatch = useDispatch<any>();
-	const { profileData, profileIsLoading, imageIsSuccess } = useAppSelector((state: RootState) => state.profile);
-	const user = profileData?.user;
-	const profileImage = { uri: profileData?.user?.profileImage?.url };
+	const profileName = logindata?.data?.user;
+	const firstLetter = typeof profileName?.name === 'string' && profileName?.name?.trim()
+		? profileName?.name?.trim()[0].toUpperCase()
+		: '-';
+
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				// Await dispatches if you need to handle responses sequentially
+				await dispatch(loginUser()).unwrap();
+			} catch (error) {
+				// Explicitly cast error to Error to access its properties 
+			}
+		};
+
+		fetchData();
+	}, [dispatch]);
+
+
 	const handleSignOut = () => {
 		Alert.alert(
 			"Are you sure you want to sign out?",
@@ -41,89 +55,64 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
 		);
 	};
 
-
-	useEffect(() => {
-		if (!profileData || imageIsSuccess) {
-			dispatch(getUserProfile());
-		}
-	}, [dispatch, profileData, imageIsSuccess]);
-
-
-
 	const handlePress = () => {
 		navigation.navigate('ChangePassword')
 	};
-	const handleManage = () => {
-		navigation.navigate('NotificationsSettings')
-	};
-	const handleChangeProfile = () => {
-		navigation.navigate('ChangeProfilePicture')
-	};
+
 
 
 	return (
 		<View style={styles.headerContainer}>
-			{/* <Header text={'My profile'} /> */}
 			<View style={styles.container}>
 				<ScrollView
-					refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+					refreshControl={<RefreshControl
+						refreshing={!refreshing ? false : refreshing}
+						onRefresh={onRefresh} />}
 					contentInsetAdjustmentBehavior="automatic"
 					contentContainerStyle={styles.scrollViewContent}>
 					<View style={styles.top_container}>
 						<View style={styles.personalDetailsContainer}>
 							<View style={styles.profileImageContainerMain}>
 								<View style={styles.skeletonContainer}>
-									{profileIsLoading ? <Skeleton circle width={48} height={48} /> :
-										<TouchableOpacity style={styles.profileImageContainer} onPress={handleChangeProfile}>
-											<Image source={profileImage} style={styles.image} />
-											<View style={styles.profileImage}>
-												<ProfileCamera />
-											</View>
+									{loginisLoading ? <Skeleton circle width={48} height={48} /> :
+										<TouchableOpacity style={styles.dashboard_profile}>
+											<Text style={styles.dashboard_profile_text_one}>{firstLetter}</Text>
 										</TouchableOpacity>}
+
 									<View style={styles.profileText}>
-										{profileIsLoading ? <Skeleton width={60} height={15} /> :
-											<Text style={styles.text}>Hi,</Text>}
-										{profileIsLoading ? <Skeleton width={120} height={15} /> :
-											<Text style={styles.textsub}>
-												{user?.firstName || "N/A"} {user?.lastName || "N/A"}
-											</Text>}
+										{loginisLoading ? <Skeleton width={60} height={15} /> :
+											<Text style={styles.text}>{profileName?.name}</Text>}
+										{loginisLoading ? <Skeleton width={120} height={15} /> :
+											<Text style={styles.textsub}>{profileName?.email} </Text>}
 									</View>
 								</View>
-
-
 							</View>
-							{profileIsLoading ? <Skeleton width={"100%"} height={15} /> :
+							{loginisLoading ? <Skeleton width={"100%"} height={15} /> :
 								<View style={styles.passwordsContainerMain}>
-									<Text style={styles.passwordLabelText}>Username:</Text>
-									<Text style={styles.passwordDotsText}>{user?.username || "N/A"}</Text>
+									<Text style={styles.passwordLabelText}>Gender:</Text>
+									<Text style={styles.passwordDotsText}>	{profileName?.gender || "-"}</Text>
 								</View>}
-							{profileIsLoading ? <Skeleton width={"100%"} height={15} /> :
+							{loginisLoading ? <Skeleton width={"100%"} height={15} /> :
 								<View style={styles.passwordsContainerMain}>
-									<Text style={styles.passwordLabelText}>Job position:</Text>
-									<Text style={styles.passwordDotsText}>{user?.role || "N/A"}</Text>
+									<Text style={styles.passwordLabelText}>Role:</Text>
+									<Text style={styles.passwordDotsText}>{profileName?.role || "-"}</Text>
 								</View>}
-							{profileIsLoading ? <Skeleton width={"100%"} height={15} /> :
+							{loginisLoading ? <Skeleton width={"100%"} height={15} /> :
 								<View style={styles.passwordsContainerMain}>
-									<Text style={styles.passwordLabelText}>Department:</Text>
-									<Text style={styles.passwordDotsText}>{user?.department || "N/A"}</Text>
+									<Text style={styles.passwordLabelText}>Phone:</Text>
+									<Text style={styles.passwordDotsText}>{profileName?.phone || "-"}</Text>
 								</View>}
 						</View>
 
 						<View style={styles.passwordsContainer}>
-							{profileIsLoading ? <Skeleton width={"100%"} height={15} /> :
+							{loginisLoading ? <Skeleton width={"100%"} height={15} /> :
 								<TouchableOpacity style={styles.passwordsContainerMain} onPress={handlePress}>
 									<Text style={styles.passwordLabelText}>Password:</Text>
 									<View style={styles.passwordTextContainer}>
-										<Text style={styles.passwordDotsText}>******</Text>
 										<RightGrayAngle />
 									</View>
 								</TouchableOpacity>}
 						</View>
-
-						<TouchableOpacity style={styles.manageContainer} onPress={handleManage}>
-							<Text style={styles.manageNotificationsText}>Manage notifications</Text>
-							<RightGrayAngle />
-						</TouchableOpacity>
 					</View>
 
 					<TouchableOpacity style={styles.Setting_Edit_container_List} onPress={handleSignOut}>
@@ -139,6 +128,26 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
 export default Profile
 
 const styles = StyleSheet.create({
+
+	dashboard_profile: {
+		width: 40,
+		height: 40,
+		borderRadius: 50,
+		backgroundColor: colors.white,
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderWidth: 0.4,
+		borderColor: colors.smail_text_color,
+	},
+
+	dashboard_profile_text_one: {
+		color: colors.gray900,
+		fontFamily: 'Inter',
+		fontStyle: 'normal',
+		fontWeight: '600',
+		fontSize: 20,
+		lineHeight: 28,
+	},
 	headerContainer: {
 		flex: 1
 	},
@@ -166,7 +175,6 @@ const styles = StyleSheet.create({
 		borderRadius: 50
 	},
 	text: {
-		width: 16,
 		height: 14,
 		fontFamily: 'Inter',
 		fontStyle: 'normal',
@@ -225,6 +233,7 @@ const styles = StyleSheet.create({
 	passwordTextContainer: {
 		flexDirection: 'row',
 		alignItems: 'center',
+		justifyContent: "center",
 		gap: 5
 	},
 
@@ -235,25 +244,6 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		color: colors.gray500,
 		alignSelf: 'center',
-	},
-	manageNotificationsText: {
-		fontFamily: 'Inter',
-		fontStyle: 'normal',
-		fontWeight: '500',
-		fontSize: 14,
-		color: colors.gray800,
-		alignSelf: 'center',
-	},
-	manageContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: "space-between",
-		padding: 16,
-		gap: 20,
-		width: "100%",
-		height: 52,
-		backgroundColor: colors.white,
-		borderRadius: 8,
 	},
 	passwordsContainer: {
 		flexDirection: 'column',
@@ -268,6 +258,7 @@ const styles = StyleSheet.create({
 		marginTop: 16,
 		gap: 16
 	},
+
 	personalDetailsContainer: {
 		flexDirection: 'column',
 		alignItems: 'flex-start',
@@ -282,6 +273,7 @@ const styles = StyleSheet.create({
 	scrollViewContent: {
 		paddingBottom: 100,
 	},
+
 	container: {
 		flexGrow: 1,
 		paddingTop: 10,

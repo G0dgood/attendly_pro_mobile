@@ -21,6 +21,8 @@ const DaysCard: React.FC<DaysCardProps> = ({ icon, toptext, text, loading }) => 
 	);
 };
 
+export default DaysCard;
+
 const styles = StyleSheet.create({
 
 	daysText: {
@@ -61,4 +63,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default DaysCard;
+

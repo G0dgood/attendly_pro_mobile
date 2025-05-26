@@ -27,7 +27,7 @@ export interface Colors {
 }
 
 export const colors: Colors = {
-  accent_blue: '#003399',
+  accent_blue: '#2563EB',
   accent_blue_light: '#BBDFFB',
   accent_Primary: '#1D76BB',
   secondary: '#FF5733',

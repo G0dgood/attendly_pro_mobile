@@ -15,8 +15,8 @@ type HomeProps = {
 
 const Headline: React.FC<HomeProps> = ({ navigation, user, profileIsLoading }) => {
   const [load, setLoad] = useState(false);
-  const profileImage = { uri: user?.user?.profileImage?.url };
-  const profileName = user?.user;
+  const profileName = user?.data?.user?.name;
+  const firstLetter = profileName?.trim()[0];
   const currentTime = new Date();
   const currentHour = currentTime.getHours();
 
@@ -41,22 +41,18 @@ const Headline: React.FC<HomeProps> = ({ navigation, user, profileIsLoading }) =
 
 
 
-
-
-
-
   return (
     <View style={styles.dashboard_titel_container}>
       <View style={styles.dashboard_profile_container}>
         {(load ? "" : profileIsLoading) ? <Skeleton circle width={40} height={40} /> :
           <TouchableOpacity style={styles.dashboard_profile} onPress={handleprofile}>
-            <Image source={profileImage} style={styles.image} />
+            <Text style={styles.dashboard_profile_text_one}>{firstLetter}</Text>
           </TouchableOpacity>}
         <View style={(load ? "" : profileIsLoading) && styles.profileText}>
           {(load ? "" : profileIsLoading) ? <Skeleton width={80} height={15} /> :
-            <Text style={styles.dashboard_profile_text}>Welcome back,</Text>}
+            <Text style={styles.dashboard_profile_text}>{profileName}</Text>}
           {(load ? "" : profileIsLoading) ? <Skeleton width={150} height={15} /> :
-            <Text style={styles.dashboard_profile_text_one}> {profileName?.firstName || getGreeting()}</Text>}
+            <Text style={styles.dashboard_profile_text_one}> {getGreeting()}</Text>}
         </View>
       </View>
       <View style={styles.dashboard_calender_container_main}>
@@ -85,6 +81,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 0.4,
     borderColor: colors.smail_text_color,
+
   },
 
   dashboard_profile_text: {

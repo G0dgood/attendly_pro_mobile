@@ -18,12 +18,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 	useEffect(() => {
 		const fetchUserData = async () => {
 			try {
-				const storedUserData = await AsyncStorage.getItem('egf-user-info');
+				const storedUserData = await AsyncStorage.getItem('attendly-user-info');
 				if (storedUserData) {
 					setUserData(JSON.parse(storedUserData));
 				}
 			} catch (error) {
-				console.error('Failed to load user data from AsyncStorage:', error);
 			}
 		};
 

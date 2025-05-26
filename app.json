@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "eezypass",
-    "slug": "eezypass",
+    "name": "attendly",
+    "slug": "attendly",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.eezypass"
+      "bundleIdentifier": "com.anonymous.attendly"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,11 +22,13 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.eezypass"
+      "package": "com.anonymous.attendly"
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "plugins": []
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "6810a182-b56c-4999-83ee-23cd82531fa1"
+      }
+    }
   }
 }

@@ -31,12 +31,12 @@ export type RootStackParamList = {
   ChangePassword: undefined;
   Success: undefined;
   NotificationsSettings: undefined;
-  ChangeProfilePicture: undefined;
-  ChangeProfileWithCamera: undefined;
   SuccessProfile: undefined;
   ForgotPassword: undefined;
   AttachmentModal: undefined;
   ForgotPasswordSuccess: undefined;
+  BarCodeCamera: undefined;
+  Successs: undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> = NativeStackScreenProps<

@@ -22,7 +22,6 @@ const SuccessScreen: React.FC<Props> = ({ navigation }) => {
 
       <View style={styles.successSection}>
         <Text style={styles.successText}>Successful</Text>
-        {/* <Text style={styles.message}>You have clocked-In for the day</Text> */}
         <Image source={require('../../assets/images/Done.png')} style={styles.icon} />
       </View>
     </View>

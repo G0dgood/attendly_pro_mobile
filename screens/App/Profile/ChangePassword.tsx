@@ -1,7 +1,5 @@
 import {
 	ActivityIndicator,
-	Platform,
-	SafeAreaView,
 	ScrollView,
 	StyleSheet,
 	Text,
@@ -14,10 +12,9 @@ import { button, colors } from '@/css/colorsIndex';
 import { RootStackParamList } from '@/types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAppDispatch, useAppSelector } from '@/hooks/hooks';
-import { changePassword, reset } from '@/features/Profile/profileSlice';
 import PasswordInput from '@/components/Input/PasswordInput';
 import Header from '@/components/Header';
-// import PasswordInput from '@/components/Input/PasswordInput';
+import { changePassword, reset } from '@/features/clockInandOut/clockInSlice';
 
 // Define type for the ChangePassword component props
 type ChangePasswordProps = {
@@ -25,8 +22,9 @@ type ChangePasswordProps = {
 };
 
 const ChangePassword: React.FC<ChangePasswordProps> = ({ navigation }) => {
+	const { isLoading, isSuccess, isError, message } = useAppSelector((state: any) => state.clock);
 	const dispatch = useAppDispatch();
-	const { isError, isSuccess, isLoading, message } = useAppSelector((state) => state?.profile);
+
 
 
 
@@ -34,6 +32,8 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ navigation }) => {
 		oldPassword: '',
 		newPassword: ''
 	});
+
+
 
 	// Update input values
 	const handleChange = (name: string, value: string) => {
@@ -45,7 +45,7 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ navigation }) => {
 		dispatch(changePassword(input));
 	};
 
-	// Handle success and error messages
+	// // Handle success and error messages
 	useEffect(() => {
 		if (isSuccess) {
 			navigation.navigate('Success')
@@ -90,7 +90,8 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ navigation }) => {
 						<TouchableOpacity
 							style={[styles.btn, button.blue_button]}
 							disabled={isLoading}
-							onPress={handlePress}>
+							onPress={handlePress}
+						>
 							{isLoading ? (
 								<ActivityIndicator color={colors.white} size="small" />
 							) : (

@@ -6,6 +6,7 @@ import { colors } from '@/css/colorsIndex';
 import AttendanceModal from './AttendanceModal';
 import { getCalender } from '@/features/Attendance/attendanceSlice';
 import { useAppDispatch } from '@/hooks/hooks';
+import moment from 'moment';
 
 const screenWidth = Dimensions.get('window').width;
 // Calculate dynamic gap
@@ -16,11 +17,10 @@ type CalendarMonthProps = {
 	calenderisLoading: boolean
 	calenderdata: string | any
 	months: number
+	id: string
 };
 
-
-
-const CalendarMonth: React.FC<CalendarMonthProps> = ({ calenderdata, calenderisLoading, months }) => {
+const CalendarMonth: React.FC<CalendarMonthProps> = ({ id, calenderdata, calenderisLoading, months }) => {
 	const dispatch = useAppDispatch();
 	const [currentDate, setCurrentDate] = useState<Date>(new Date());
 	const [modalVisible, setModalVisible] = useState(false);
@@ -28,21 +28,34 @@ const CalendarMonth: React.FC<CalendarMonthProps> = ({ calenderdata, calenderisL
 		day: number;
 		status: string;
 		date?: string;
-		morningCheckIn?: string;
-		morningCheckout?: string;
-		afternoonCheckIn?: string;
-		afternoonCheckout?: string;
+		clockIn?: string;
+		clockOut?: string;
 	} | null>(null);
+
+
+
 
 	const getDaysInMonth = (year: number, month: number): number =>
 		new Date(year, month + 1, 0).getDate();
 
-	const calendarSummary = calenderdata?.data?.attendanceSummary?.calendarSummary || [];
+	const calendarSummary = calenderdata?.data?.data?.data?.map((record: any) => ({
+		date: new Date(record.clockIn).toISOString().split('T')[0],
+		clockIn: record.clockIn,
+		clockOut: record.clockOut,
+		status: 'Present',
+	})) || [];
 
 	useEffect(() => {
 		const year = currentDate.getFullYear();
-		const month = currentDate.getMonth() + 1; // Convert 0-based to 1-based
-		dispatch(getCalender(month));
+		const month = currentDate.getMonth() + 1;
+		dispatch(getCalender({
+			id,
+			page: 1,
+			limit: 50,
+			filterByDate: 'range',
+			startDate: `${year}-${String(month).padStart(2, '0')}-01`,
+			endDate: `${year}-${String(month).padStart(2, '0')}-31`,
+		}));
 	}, [currentDate, dispatch]);
 
 	useEffect(() => {
@@ -59,15 +72,13 @@ const CalendarMonth: React.FC<CalendarMonthProps> = ({ calenderdata, calenderisL
 		setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
 	};
 
-
-
 	const handleDayClick = (day: number) => {
 		const year = currentDate.getFullYear();
 		const month = String(currentDate.getMonth() + 1).padStart(2, '0');
 		const formattedDate = `${year}-${month}-${String(day).padStart(2, '0')}`;
 
-		const selectedRecord = calendarSummary.find((record: any) =>
-			new Date(record.date).toISOString().split('T')[0] === formattedDate
+		const selectedRecord = calendarSummary?.find((record: any) =>
+			moment(record?.date).format('YYYY-MM-DD') === formattedDate
 		);
 
 		if (selectedRecord) {
@@ -75,10 +86,8 @@ const CalendarMonth: React.FC<CalendarMonthProps> = ({ calenderdata, calenderisL
 				day,
 				status: selectedRecord.status || 'No records',
 				date: formattedDate,
-				morningCheckIn: selectedRecord.morningCheckIn,
-				morningCheckout: selectedRecord.morningCheckout,
-				afternoonCheckIn: selectedRecord.afternoonCheckIn,
-				afternoonCheckout: selectedRecord.afternoonCheckout,
+				clockIn: selectedRecord.clockIn ? moment(selectedRecord.clockIn).format('hh:mm A') : '00:00',
+				clockOut: selectedRecord.clockOut ? moment(selectedRecord.clockOut).format('hh:mm A') : '00:00',
 			});
 		} else {
 			setSelectedDateDetails({ day, status: 'No records', date: formattedDate });
@@ -86,17 +95,12 @@ const CalendarMonth: React.FC<CalendarMonthProps> = ({ calenderdata, calenderisL
 
 		setModalVisible(true);
 	};
-
-
-
-
 	const renderDays = (): JSX.Element[] => {
 		const year = currentDate.getFullYear();
 		const month = currentDate.getMonth();
 		const firstDayOfMonth = new Date(year, month, 1).getDay();
 		const daysInMonth = getDaysInMonth(year, month);
 
-		// Determine today's date for comparison
 		const today = new Date();
 		const isToday = (day: number) =>
 			day === today.getDate() &&
@@ -111,15 +115,15 @@ const CalendarMonth: React.FC<CalendarMonthProps> = ({ calenderdata, calenderisL
 
 		for (let day = 1; day <= daysInMonth; day++) {
 			const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-			const selectedRecord = calendarSummary.find((record: { date: string | number | Date }) =>
-				new Date(record.date).toISOString().split('T')[0] === dateKey
+			const selectedRecord = calendarSummary.find((record: { date: string }) =>
+				new Date(record?.date).toISOString().split('T')[0] === dateKey
 			);
 
 			const status = selectedRecord ? selectedRecord.status : 'No records';
 			const isAbsent = status === 'Absent';
 			const isPresent = status === 'Present';
 			const isLate = status === 'Late';
-			const isOnLeave = status === 'On Leave';
+			const isOnTime = status === 'On Time';
 
 			const isWeekend =
 				new Date(year, month, day).getDay() === 0 || new Date(year, month, day).getDay() === 6;
@@ -127,23 +131,15 @@ const CalendarMonth: React.FC<CalendarMonthProps> = ({ calenderdata, calenderisL
 			dayCells.push(
 				<TouchableOpacity
 					key={day}
-					style={[
-						styles.container_text,
-						isToday(day) && styles.current_day, // Apply special styling for today's date
-					]}
+					style={[styles.container_text, isToday(day) && styles.current_day]}
 					onPress={() => handleDayClick(day)}
 				>
 					{isPresent && <View style={styles.present} />}
 					{isLate && <View style={styles.late} />}
 					{isAbsent && <View style={styles.absent} />}
-					{isOnLeave && <View style={styles.isOnLeave} />}
-
+					{isOnTime && <View style={styles.isOnTime} />}
 					<Text
-						style={[
-							styles.text,
-							isToday(day) ? styles.current_day_text : null, // Highlight today's date text
-							isWeekend && !isToday(day) && styles.weekend_day,
-						]}
+						style={[styles.text, isToday(day) ? styles.current_day_text : null, isWeekend && !isToday(day) && styles.weekend_day]}
 					>
 						{day}
 					</Text>
@@ -162,7 +158,6 @@ const CalendarMonth: React.FC<CalendarMonthProps> = ({ calenderdata, calenderisL
 
 		return weeks;
 	};
-
 
 	return (
 		<View>
@@ -198,16 +193,13 @@ const CalendarMonth: React.FC<CalendarMonthProps> = ({ calenderdata, calenderisL
 						setModalVisible={setModalVisible}
 						selectedDateDetails={selectedDateDetails}
 					/>
-
 				</View>
 			)}
 		</View>
 	);
 };
 
-
 export default CalendarMonth;
-
 
 
 const styles = StyleSheet.create({
@@ -243,7 +235,7 @@ const styles = StyleSheet.create({
 		gap: dynamicGap,
 	},
 
-	isOnLeave: {
+	isOnTime: {
 		position: 'absolute',
 		width: 4,
 		height: 4,

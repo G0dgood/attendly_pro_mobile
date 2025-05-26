@@ -1,28 +1,40 @@
-export const baseUrl = "https://egf-logistics-admin-nine.vercel.app";
- export const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND_NOTIFICATION_TASK';
+export const baseUrl = "https://attendance-tracker-backend-8z00.onrender.com"; 
 
- 
+type QueryParams = {
+  path?: string; 
+  page?: number;
+  limit?: number;
+  filterByDate?: 'range' | 'today';
+  startDate?: string;
+  endDate?: string;
+};
 
 export const buildDynamicURL = (
   base: string,
-  requestType?: string | number
+  query?: QueryParams
 ): string => {
-  let baseURL = `${base}`;
-  const queryParams: string[] = [];
+  let url = base;
 
-  // Add 'requestType' to the query parameters if it's not null or undefined
-  if (requestType !== null && requestType !== undefined) {
-    queryParams.push(`requestType=${requestType}`);
+  if (query?.path) {
+    url += `/${query.path}`;
   }
 
-  // Combine the base URL and query parameters
+  const queryParams: string[] = [];
+ 
+  if (query?.page) queryParams.push(`page=${query.page}`);
+  if (query?.limit) queryParams.push(`limit=${query.limit}`);
+  if (query?.filterByDate) queryParams.push(`filterByDate=${query.filterByDate}`);
+  if (query?.startDate) queryParams.push(`startDate=${query.startDate}`);
+  if (query?.endDate) queryParams.push(`endDate=${query.endDate}`);
+
   if (queryParams.length > 0) {
-    baseURL += "?" + queryParams.join("&");
-		}
+    url += '?' + queryParams.join('&');
+  }
  
 
-  return baseURL;
+  return url;
 };
+
 
   
  

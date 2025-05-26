@@ -19,9 +19,17 @@ const initialState:any = {
  
 
 // clock In and Out
-export const clockInOut = createAsyncThunk('clock/clockInOut', async (data, thunkAPI) => {
+// Define or import ChangePasswordInput
+type ChangePasswordInput = {
+  input: {
+    oldPassword: string;
+    newPassword: string;
+  };
+};
+
+export const changePassword = createAsyncThunk('clock/changePassword', async (data: ChangePasswordInput, thunkAPI) => {
   try {
-    return await clockInService.clockInOut()
+    return await clockInService.changePassword(data)
 
   } catch (error: any) {  
     const message = (error.response && 
@@ -75,15 +83,15 @@ export const clockInSlice = createSlice({
   extraReducers: (builder) => {
     builder
       //  clock In & Out 
-      .addCase(clockInOut.pending, (state) => {
+      .addCase(changePassword.pending, (state) => {
         state.isLoading = true
       })
-      .addCase(clockInOut.fulfilled, (state, action) => {
+      .addCase(changePassword.fulfilled, (state, action) => {
         state.isLoading = false
         state.isSuccess = true
         state.user = action.payload 
       }) 
-      .addCase(clockInOut.rejected, (state:any, action) => {
+      .addCase(changePassword.rejected, (state:any, action) => {
         state.isLoading  = false
         state.isError  = true
         state.message  = action.payload

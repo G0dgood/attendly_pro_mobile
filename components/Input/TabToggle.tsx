@@ -1,6 +1,6 @@
 import { useRefresh } from '@/Context/RefreshContext';
 import { colors } from '@/css/colorsIndex';
-import { getAttendanceSummary, getCalender, getLoggedInUserAttendance, reset } from '@/features/Attendance/attendanceSlice';
+import { getCalender, getLoggedInUserAttendance, reset } from '@/features/Attendance/attendanceSlice';
 import { useAppDispatch, useAppSelector } from '@/hooks/hooks';
 import AttendanceCard from '@/screens/App/Attendance/AttendanceCard';
 import CalendarMonth from '@/screens/App/Attendance/CalenderMonth';
@@ -11,6 +11,8 @@ import { Tab, TabView } from '@rneui/themed';
 import ContextMenu from '../ContextMenu';
 import { tabItems } from '../data';
 import { RootState } from '@/utils/store';
+import { loginUser } from '@/features/clockInandOut/clockInSlice';
+import { transformLoginDataToSelectedDateDetails } from '../Options';
 
 
 
@@ -18,7 +20,6 @@ import { RootState } from '@/utils/store';
 // Define props for the TabToggle component
 interface TabToggleProps {
 	snackbarVisible: boolean;
-	setSnackbarVisible: (visible: boolean) => void;
 	setMessages: (message: string) => void;
 }
 
@@ -29,8 +30,6 @@ interface AttendanceDay {
 	date: string;
 	morningCheckIn: string | null;
 	morningCheckout: string | null;
-	afternoonCheckIn: string | null;
-	afternoonCheckout: string | null;
 	duration: number;
 	overtimeLateDiff: number;
 	status: string;
@@ -51,20 +50,52 @@ interface AttendanceState {
 	calenderisError: boolean;
 	calendermessage: string | null;
 	snackbarVisible: boolean;
-	setSnackbarVisible: (visible: boolean) => void;
 	setMessages: (message: string) => void;
 }
 
-const TabToggle: React.FC<AttendanceState> = ({ setSnackbarVisible, setMessages }) => {
-	const { data, isLoading, isError, message, summarydata, summaryisLoading, summaryisError, summarymessage, calenderdata, calenderisLoading, calenderisError, calendermessage }: any = useAppSelector((state) => state.attendance);
-	const { } = useAppSelector((state: RootState) => state.clock);
-
+const TabToggle: React.FC<AttendanceState> = ({ setMessages }) => {
+	const { data, isLoading, isError, message, calenderdata, calenderisLoading, calenderisError, calendermessage }: any = useAppSelector((state) => state.attendance);
+	const { logindata } = useAppSelector((state: RootState) => state.clock);
+	const day = !data?.data?.data?.data ? [] : data?.data?.data?.data
+	const selectedDateDetails = transformLoginDataToSelectedDateDetails(day[0]);
+	const id = logindata?.data?.user?.id
 	const { refreshing, onRefresh } = useRefresh(); // Assuming `useRefresh` is custom hook
 	const [index, setIndex] = useState<number>(0);
 	const [month, setMonth] = useState<number | any>({ number: new Date().getMonth() + 1 });
 	const dispatch = useAppDispatch();
-	const day = data?.data?.attendance;
 	const months = month.number;
+
+
+
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				// Await dispatches if you need to handle responses sequentially
+				await dispatch(loginUser()).unwrap();
+				await dispatch(getLoggedInUserAttendance(id)).unwrap();
+			} catch (error) {
+				// Explicitly cast error to Error to access its properties 
+			}
+		};
+
+		fetchData();
+	}, [dispatch]);
+
+	useEffect(() => {
+		const fetchData = async () => {
+			if (refreshing === true) {
+				try {
+					// Dispatch actions and handle responses sequentially
+					await dispatch(loginUser()).unwrap();
+					await dispatch(getLoggedInUserAttendance(id)).unwrap();
+				} catch (error) {
+					// Explicitly handle the error
+				}
+			}
+		};
+
+		fetchData();
+	}, [refreshing, dispatch]);
 
 
 	useEffect(() => {
@@ -75,15 +106,29 @@ const TabToggle: React.FC<AttendanceState> = ({ setSnackbarVisible, setMessages 
 	const fetchDataForTab = useCallback(() => {
 		if (index === 0) {
 			// Attendance Tab
-			dispatch(getLoggedInUserAttendance());
+			dispatch(getLoggedInUserAttendance(id));
 		} else if (index === 1) {
 			// Calendar Tab
-			dispatch(getCalender(months));
+			dispatch(getCalender({
+				id: id,
+				page: 1,
+				limit: 50,
+				filterByDate: 'range',
+				startDate: '2025-05-01',
+				endDate: '2025-05-30',
+			}));
 		} else if (index === 2) {
 			// Summary Tab
-			dispatch(getAttendanceSummary(months));
+			dispatch(getCalender({
+				id: id,
+				page: 1,
+				limit: 50,
+				filterByDate: 'range',
+				startDate: '2025-05-01',
+				endDate: '2025-05-30',
+			}));
 		}
-	}, [index, dispatch, months]);
+	}, [index, dispatch]);
 
 	useEffect(() => {
 		fetchDataForTab();
@@ -98,15 +143,12 @@ const TabToggle: React.FC<AttendanceState> = ({ setSnackbarVisible, setMessages 
 	useEffect(() => {
 		if (
 			day &&
-			day.morningCheckIn === null &&
-			day.morningCheckout === null &&
-			day.afternoonCheckIn === null &&
-			day.afternoonCheckout === null
+			day.clockIn === null &&
+			day.clockOut === null
 		) {
-			setSnackbarVisible(true); // Show the Snackbar
 			setMessages("No Attendance Data Found");
 		}
-	}, [day, setSnackbarVisible, setMessages]);
+	}, [day, setMessages]);
 
 
 
@@ -114,7 +156,6 @@ const TabToggle: React.FC<AttendanceState> = ({ setSnackbarVisible, setMessages 
 	useEffect(() => {
 		const errors = [];
 		if (isError && message) errors.push(message);
-		if (summaryisError && summarymessage) errors.push(summarymessage);
 		if (calenderisError && calendermessage) errors.push(calendermessage);
 
 		if (errors.length > 0) {
@@ -125,7 +166,7 @@ const TabToggle: React.FC<AttendanceState> = ({ setSnackbarVisible, setMessages 
 			);
 			dispatch(reset()); // Reset state after showing the alert
 		}
-	}, [isError, summaryisError, calenderisError, message, summarymessage, calendermessage, dispatch]);
+	}, [isError, calenderisError, message, calendermessage, dispatch]);
 
 
 
@@ -166,7 +207,7 @@ const TabToggle: React.FC<AttendanceState> = ({ setSnackbarVisible, setMessages 
 							refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
 						>
 							<AttendanceCard
-								selectedDateDetails={day}
+								selectedDateDetails={selectedDateDetails}
 								isLoading={!refreshing && isLoading}
 								topTime={false}
 							/>
@@ -177,6 +218,7 @@ const TabToggle: React.FC<AttendanceState> = ({ setSnackbarVisible, setMessages 
 							refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
 						>
 							<CalendarMonth
+								id={id}
 								months={months}
 								calenderdata={calenderdata}
 								calenderisLoading={!refreshing && calenderisLoading} />
@@ -184,11 +226,10 @@ const TabToggle: React.FC<AttendanceState> = ({ setSnackbarVisible, setMessages 
 					</TabView.Item>
 					<TabView.Item key={`tab-${index}`} style={{ width: '100%' }}>
 						<ScrollView style={styles.card_list_scroll_container}
-							refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-						>
+							refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
 							<Summary
-								summarydata={summarydata}
-								summaryisLoading={!refreshing && summaryisLoading}
+								summarydata={calenderdata}
+								summaryisLoading={!refreshing && calenderisLoading}
 							/>
 						</ScrollView>
 					</TabView.Item>

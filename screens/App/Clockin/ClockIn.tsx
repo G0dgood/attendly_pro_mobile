@@ -3,8 +3,8 @@ import React from 'react';
 import { colors } from '@/css/colorsIndex';
 import { RootStackParamList } from '@/types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import ModalHeader from '@/components/ModalHeader';
 import BarCodeCamera from './BarCodeCamera';
+import { useNavigation } from '@react-navigation/native';
 
 
 // Define type for the Home component props
@@ -12,29 +12,13 @@ type ClockInProps = {
 	navigation: NativeStackNavigationProp<RootStackParamList, 'ClockIn'>;
 };
 
-const ClockIn: React.FC<ClockInProps> = ({ navigation }) => {
-
+const ClockIn: React.FC<ClockInProps> = () => {
+	const navigation = useNavigation();
 
 
 	return (
-		// <View style={styles.headerContainer}>
-		// 	<ModalHeader text={'Clock In'} />
-		// 	<View style={styles.container}>
-		// 		<View style={styles.containerSub}>
-		// 			<View style={styles.photo_container}>
-		// 				<View>
-		// 					<Text style={styles.text_take}>Take a photo</Text>
-		// 					<Text style={styles.text_take_sub}>Take a photo at your designated place of work, ensure its well lit</Text>
-		// 				</View>
-		// 			</View>
 
-		// 			<TouchableOpacity style={styles.buttonContainer}  >
-		// 				<Text style={styles.text}>Take photo</Text>
-		// 			</TouchableOpacity>
-		// 		</View>
-		// 	</View>
-		// </View>
-		<BarCodeCamera />
+		<BarCodeCamera navigation={navigation} />
 	);
 };
 

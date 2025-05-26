@@ -1,55 +1,55 @@
 import { getConfig } from '@/hooks/config';
-import { baseUrl } from '@/shared/baseUrl';
+import { baseUrl, buildDynamicURL } from '@/shared/baseUrl';
 import axios from 'axios';
+ 
+ 
 
-// Define types for the responses
-interface AttendanceInfo {
-  morningCheckIn: string | null;
-  morningCheckout: string | null;
-  afternoonCheckIn: string | null;
-  afternoonCheckout: string | null;
-  [key: string]: any; // Add this to handle other possible properties in the response
-}
-
-interface CalendarData {
-  date: string;
-  isHoliday: boolean;
-  events: string[];
-  [key: string]: any;
-}
-
-interface AttendanceSummary {
-  totalPresentDays: number;
-  totalAbsentDays: number; 
-  [key: string]: any;
+// typescript
+interface CalendarQueryParams {
+   id?: string ; 
+  page?: number;
+  limit?: number;
+  filterByDate?: 'today' | 'range';
+  startDate?: string;
+  endDate?: string;
 }
 
 // Attendance
-const getLoggedInUserAttendance = async (): Promise<AttendanceInfo> => {
-  const config = await getConfig();
-  const { data } = await axios.get<AttendanceInfo>(`${baseUrl}/api/attendance/info`, config);
+const handleAttendance = async (  input: any) => {
+  
+  const config = await getConfig(); 
+  const { data } = await axios.post(`${baseUrl}/api/v1/attendance/`,input ,config); 
+  return data;
+};
+const getLoggedInUserAttendance = async (id: string) => {
+  
+  const config = await getConfig(); 
+  const { data } = await axios.get(`${baseUrl}/api/v1/attendance/${id}`, config); 
   return data;
 };
 
-// Get Calendar
-const getCalender = async (months: number): Promise<CalendarData[]> => {  
+ 
+const getCalender = async (params: CalendarQueryParams) => { 
   const config = await getConfig();
-  const { data } = await axios.get<CalendarData[]>(`${baseUrl}/api/attendance/info/total/logged-in/${months}`, config);
+    const url = buildDynamicURL(`${baseUrl}/api/v1/attendance/${params.id}`, { 
+      page: params.page,
+      limit: params.limit,
+      filterByDate: params.filterByDate,
+      startDate: params.startDate,
+      endDate: params.endDate,
+    });
+
+    const { data } = await axios.get(url, config);
   return data;
 };
 
-// Get Attendance Summary
-const getAttendanceSummary = async (months: number): Promise<AttendanceSummary> => {
-  const config = await getConfig();
-  const { data } = await axios.get<AttendanceSummary>(`${baseUrl}/api/attendance/info/total/logged-in/${months}?summarize=true`, config);
-  return data;
-};
 
+ 
 // Service
 const attendanceService = {
-  getLoggedInUserAttendance,
-  getAttendanceSummary,
+  getLoggedInUserAttendance, 
   getCalender,
+  handleAttendance
 };
 
 export default attendanceService;

@@ -32,8 +32,8 @@ const BottomTabNavigator = () => {
 			initialRouteName="Home"
 			screenOptions={{
 				headerShown: false,
-				tabBarActiveTintColor: Colors[colorScheme].tabIconSelected,  // Active icon and label color
-				tabBarInactiveTintColor: Colors[colorScheme].tabIconDefault,  // Inactive icon and label color
+				tabBarActiveTintColor: Colors[colorScheme].tabIconSelected,
+				tabBarInactiveTintColor: Colors[colorScheme].tabIconDefault,
 				tabBarStyle: {
 					height: Platform.OS === 'android' ? 60 : 80,
 					paddingBottom: Platform.OS === 'android' ? 10 : 30,

@@ -30,7 +30,7 @@ export const authenticateUser = createAsyncThunk(
   async ({ username, password }: { username: string; password: string }, { rejectWithValue }) => {
     try {
       const response = await loginUser(username, password); 
-      await AsyncStorage.setItem('egf-user-info', JSON.stringify(response)); 
+      await AsyncStorage.setItem('attendly-user-info', JSON.stringify(response)); 
       return response.data;
     } catch (error) {
       const err = error as AxiosError<ErrorResponse>;
@@ -49,7 +49,7 @@ export const initializeUser = createAsyncThunk(
   'auth/initialize',
   async (_, { rejectWithValue }) => {
     try {
-      const userInfo = await AsyncStorage.getItem('egf-user-info');
+      const userInfo = await AsyncStorage.getItem('attendly-user-info');
       if (userInfo) {
         return JSON.parse(userInfo);
       }
@@ -69,7 +69,7 @@ export const initializeUser = createAsyncThunk(
 // Thunk to handle logout  
 
 export const logoutUser:any = createAsyncThunk<null, void>('auth/logout', async () => {
-  await AsyncStorage.removeItem('egf-user-info');
+  await AsyncStorage.removeItem('attendly-user-info');
   return null;
 });
 

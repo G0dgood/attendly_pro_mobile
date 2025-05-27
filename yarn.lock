@@ -2841,7 +2841,7 @@ __metadata:
     "@types/react": "npm:~19.0.10"
     "@types/react-redux": "npm:^7.1.34"
     axios: "npm:^1.9.0"
-    expo: "npm:~53.0.9"
+    expo: "npm:^53.0.9"
     expo-camera: "npm:~16.1.6"
     expo-dev-client: "npm:~5.1.8"
     expo-device: "npm:~7.1.4"
@@ -4359,7 +4359,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo@npm:~53.0.9":
+"expo@npm:^53.0.9":
   version: 53.0.9
   resolution: "expo@npm:53.0.9"
   dependencies:

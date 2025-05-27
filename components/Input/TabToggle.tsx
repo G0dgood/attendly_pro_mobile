@@ -45,11 +45,11 @@ interface AttendanceState {
 	calenderisLoading: boolean;
 	calenderisError: boolean;
 	calendermessage: string | null;
-	setMessages: (message: string) => void;
+	setMessages: (message: string) => void; // Explicitly typed as a function that takes a string and returns void
 }
 
-const TabToggle: React.FC<AttendanceState> = ({ setMessages }) => {
-	const { data, isLoading, isError, message, calenderdata, calenderisLoading, calenderisError, calendermessage }: any = useAppSelector((state) => state.attendance);
+const TabToggle: React.FC<AttendanceState> = ({ setMessages }: { setMessages: (message: string) => void }) => {
+	const { data, isLoading, isError, message, calenderdata, calenderisLoading, calenderisError, calendermessage }: any = useAppSelector((state: { attendance: any; }) => state.attendance);
 	const { logindata } = useAppSelector((state: RootState) => state.clock);
 	const day = !data?.data?.data?.data ? [] : data?.data?.data?.data
 	const selectedDateDetails = transformLoginDataToSelectedDateDetails(day[0]);
@@ -171,7 +171,7 @@ const TabToggle: React.FC<AttendanceState> = ({ setMessages }) => {
 			<View style={styles.tabContainer}>
 				<Tab
 					value={index}
-					onChange={(e) => setIndex(e)}
+					onChange={(e: any) => setIndex(e)}
 					indicatorStyle={styles.indicatorStyle}
 					variant="default"
 				>

@@ -47,6 +47,7 @@ const BarCodeCamera = ({ navigation }: any) => {
 					},
 				},
 			]);
+			dispatch(reset());
 		}
 	}, [handleAttendanceisSuccess]);
 

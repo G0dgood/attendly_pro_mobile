@@ -17,11 +17,7 @@ import { transformLoginDataToSelectedDateDetails } from '../Options';
 
 
 
-// Define props for the TabToggle component
-interface TabToggleProps {
-	snackbarVisible: boolean;
-	setMessages: (message: string) => void;
-}
+
 
 // Define the attendance day type
 interface AttendanceDay {
@@ -49,7 +45,6 @@ interface AttendanceState {
 	calenderisLoading: boolean;
 	calenderisError: boolean;
 	calendermessage: string | null;
-	snackbarVisible: boolean;
 	setMessages: (message: string) => void;
 }
 

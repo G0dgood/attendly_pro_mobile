@@ -14,7 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.attendly"
+      "bundleIdentifier": "com.anonymous.attendly",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "This app uses Face ID for secure and convenient login authentication."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -26,7 +29,13 @@
     },
     "plugins": [
       "expo-router",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "This app uses Face ID for secure and convenient login authentication."
+        }
+      ]
     ],
     "extra": {
       "eas": {

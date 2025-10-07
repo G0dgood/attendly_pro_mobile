@@ -50,16 +50,21 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
 				const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
 				const touchIdEnabled = await AsyncStorage.getItem('touchIdEnabled');
 
-				console.log('Biometric check results:');
-				console.log('Has Hardware:', hasHardware);
-				console.log('Is Enrolled:', isEnrolled);
-				console.log('Supported Types:', supportedTypes);
-				console.log('Touch ID Enabled:', touchIdEnabled);
-
+				// Set biometric availability
 				setIsBiometricAvailable(hasHardware && isEnrolled);
+
+				// Set toggle state
 				setIsTouchIdEnabled(touchIdEnabled === 'true');
+
+				// If no saved state, initialize as false
+				if (touchIdEnabled === null) {
+					await AsyncStorage.setItem('touchIdEnabled', 'false');
+					setIsTouchIdEnabled(false);
+				}
 			} catch (error) {
-				console.log('Error checking biometric availability:', error);
+				// Set defaults on error
+				setIsBiometricAvailable(false);
+				setIsTouchIdEnabled(false);
 			}
 		};
 
@@ -89,8 +94,22 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
 
 	const handleTouchIdToggle = async (value: boolean) => {
 		if (value) {
-			// Enable biometric authentication - authenticate first
+			// Enable biometric authentication with PIN fallback
 			try {
+				// Check if biometric is available
+				const hasHardware = await LocalAuthentication.hasHardwareAsync();
+				const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+
+				if (!hasHardware || !isEnrolled) {
+					// If Face ID not available, enable PIN/Passcode authentication
+					setIsTouchIdEnabled(true);
+					await AsyncStorage.setItem('touchIdEnabled', 'true');
+					await AsyncStorage.setItem('usePinFallback', 'true');
+					Alert.alert('PIN Authentication Enabled', 'PIN/Passcode authentication has been enabled for quick login');
+					return;
+				}
+
+				// Face ID is available, try to authenticate
 				const biometricType = Platform.OS === 'ios' ? 'Face ID' : 'Fingerprint';
 				const promptMessage = `Enable ${biometricType} for quick login`;
 				const fallbackLabel = Platform.OS === 'ios' ? 'Use Passcode' : 'Use Password';
@@ -98,26 +117,35 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
 				const result = await LocalAuthentication.authenticateAsync({
 					promptMessage,
 					fallbackLabel,
-					disableDeviceFallback: Platform.OS === 'ios' ? true : false, // Disable passcode fallback on iOS
+					disableDeviceFallback: false, // Allow PIN/Passcode fallback
 					cancelLabel: 'Cancel',
 				});
 
 				if (result.success) {
 					setIsTouchIdEnabled(true);
 					await AsyncStorage.setItem('touchIdEnabled', 'true');
+					await AsyncStorage.setItem('usePinFallback', 'false');
 					Alert.alert('Success', `${biometricType} has been enabled for quick login`);
 				} else {
-					Alert.alert('Authentication Failed', `${biometricType} authentication was cancelled or failed`);
+					// Reset toggle state to false on any failure
+					setIsTouchIdEnabled(false);
+
+					if (result.error === 'user_cancel') {
+						Alert.alert('Cancelled', 'Authentication was cancelled. You can try again anytime.');
+					} else {
+						Alert.alert('Authentication Failed', 'Authentication failed. Please try again.');
+					}
 				}
 			} catch (error) {
-				Alert.alert('Error', 'Failed to enable biometric authentication');
+				setIsTouchIdEnabled(false);
+				Alert.alert('Error', 'Unable to enable authentication. Please try again.');
 			}
 		} else {
-			// Disable biometric authentication
-			const biometricType = Platform.OS === 'ios' ? 'Face ID' : 'Fingerprint';
+			// Disable authentication
 			setIsTouchIdEnabled(false);
 			await AsyncStorage.setItem('touchIdEnabled', 'false');
-			Alert.alert(`${biometricType} Disabled`, `${biometricType} has been disabled for quick login`);
+			await AsyncStorage.setItem('usePinFallback', 'false');
+			Alert.alert('Authentication Disabled', 'Authentication has been disabled for quick login');
 		}
 	};
 
@@ -179,14 +207,21 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
 							{isBiometricAvailable && (
 								<View style={styles.passwordsContainerMain}>
 									<Text style={styles.passwordLabelText}>
-										{Platform.OS === 'ios' ? 'Face ID' : 'Fingerprint'} Login:
+										{Platform.OS === 'ios' ? 'Face ID/PIN' : 'Fingerprint/PIN'} Login:
 									</Text>
-									<Switch
-										value={isTouchIdEnabled}
-										onValueChange={handleTouchIdToggle}
-										trackColor={{ false: colors.gray300, true: colors.accent_blue }}
-										thumbColor={isTouchIdEnabled ? colors.white : colors.gray500}
-									/>
+									<TouchableOpacity
+										style={[
+											styles.customToggle,
+											isTouchIdEnabled && styles.customToggleActive
+										]}
+										onPress={() => handleTouchIdToggle(!isTouchIdEnabled)}
+										activeOpacity={0.7}
+									>
+										<View style={[
+											styles.toggleThumb,
+											isTouchIdEnabled && styles.toggleThumbActive
+										]} />
+									</TouchableOpacity>
 								</View>
 							)}
 						</View>
@@ -355,5 +390,28 @@ const styles = StyleSheet.create({
 		flexGrow: 1,
 		paddingTop: 10,
 		backgroundColor: colors.background,
-	}
+	},
+
+	// Custom Toggle Styles
+	customToggle: {
+		width: 50,
+		height: 30,
+		backgroundColor: colors.gray300,
+		borderRadius: 15,
+		padding: 2,
+		justifyContent: 'center',
+	},
+	customToggleActive: {
+		backgroundColor: colors.accent_blue,
+	},
+	toggleThumb: {
+		width: 26,
+		height: 26,
+		backgroundColor: colors.white,
+		borderRadius: 13,
+		alignSelf: 'flex-start',
+	},
+	toggleThumbActive: {
+		alignSelf: 'flex-end',
+	},
 })

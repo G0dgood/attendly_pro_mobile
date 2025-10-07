@@ -1,29 +1,45 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, KeyboardAvoidingView, ScrollView, TextInput } from 'react-native';
-import * as Haptics from 'expo-haptics';
-import * as LocalAuthentication from 'expo-local-authentication';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAppDispatch, useAppSelector } from '../../hooks/hooks';
-import { authenticateUser, clearError } from '../../slices/authSlice';
-import TextInputField from '../../components/TextInputField';
-import PrimaryButton from '../../components/PrimaryButton';
-import ErrorMessage from '../../components/ErrorMessage';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { colors } from '@/css/colorsIndex';
-import { BlueLogo } from '@/assets/svg/BlueLogo';
-import { RootStackParamList } from '@/types';
-import TextInputFieldPassword from '@/components/TextInputFieldPassword';
-import { EyeOff } from '@/assets/svg/EyeOff';
-import { EyeOn } from '@/assets/svg/EyeOn';
-import Fingerprint from '@/assets/svg/Fingerprint';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+  KeyboardAvoidingView,
+  ScrollView,
+  TextInput,
+} from "react-native";
+import * as Haptics from "expo-haptics";
+import * as LocalAuthentication from "expo-local-authentication";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
+import { authenticateUser, clearError } from "../../slices/authSlice";
+import TextInputField from "../../components/TextInputField";
+import PrimaryButton from "../../components/PrimaryButton";
+import ErrorMessage from "../../components/ErrorMessage";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { colors } from "@/css/colorsIndex";
+import { BlueLogo } from "@/assets/svg/BlueLogo";
+import { RootStackParamList } from "@/types";
+import TextInputFieldPassword from "@/components/TextInputFieldPassword";
+import { EyeOff } from "@/assets/svg/EyeOff";
+import { EyeOn } from "@/assets/svg/EyeOn";
+import Fingerprint from "@/assets/svg/Fingerprint";
+import { UnlockIphone } from "@/assets/svg/UnlockIphone";
+import { UnlockAndroid } from "@/assets/svg/UnlockAndroid";
 
-type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
+type LoginScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "Login"
+>;
 
-interface Props { navigation: LoginScreenNavigationProp }
+interface Props {
+  navigation: LoginScreenNavigationProp;
+}
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [usernameFocused, setUsernameFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
@@ -31,17 +47,19 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [isTouchIdEnabled, setIsTouchIdEnabled] = useState(false);
   const passwordRef = useRef<TextInput>(null);
   const dispatch = useAppDispatch();
-  const { error, isLoading, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { error, isLoading, isAuthenticated } = useAppSelector(
+    (state) => state.auth
+  );
   const handleLogin = async () => {
     dispatch(authenticateUser({ username, password }));
 
     // Save credentials if Touch ID is enabled
     if (isTouchIdEnabled) {
       try {
-        await AsyncStorage.setItem('savedUsername', username);
-        await AsyncStorage.setItem('savedPassword', password);
+        await AsyncStorage.setItem("savedUsername", username);
+        await AsyncStorage.setItem("savedPassword", password);
       } catch (error) {
-        console.log('Error saving credentials:', error);
+        console.log("Error saving credentials:", error);
       }
     }
   };
@@ -52,19 +70,20 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       try {
         const hasHardware = await LocalAuthentication.hasHardwareAsync();
         const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-        const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
-        const touchIdEnabled = await AsyncStorage.getItem('touchIdEnabled');
+        const supportedTypes =
+          await LocalAuthentication.supportedAuthenticationTypesAsync();
+        const touchIdEnabled = await AsyncStorage.getItem("touchIdEnabled");
 
-        console.log('Biometric check results:');
-        console.log('Has Hardware:', hasHardware);
-        console.log('Is Enrolled:', isEnrolled);
-        console.log('Supported Types:', supportedTypes);
-        console.log('Touch ID Enabled:', touchIdEnabled);
+        console.log("Biometric check results:");
+        console.log("Has Hardware:", hasHardware);
+        console.log("Is Enrolled:", isEnrolled);
+        console.log("Supported Types:", supportedTypes);
+        console.log("Touch ID Enabled:", touchIdEnabled);
 
         setIsBiometricAvailable(hasHardware && isEnrolled);
-        setIsTouchIdEnabled(touchIdEnabled === 'true');
+        setIsTouchIdEnabled(touchIdEnabled === "true");
       } catch (error) {
-        console.log('Error checking biometric availability:', error);
+        console.log("Error checking biometric availability:", error);
       }
     };
 
@@ -73,10 +92,10 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
   // Get biometric type for display
   const getBiometricType = () => {
-    if (Platform.OS === 'ios') {
-      return 'Face ID';
+    if (Platform.OS === "ios") {
+      return "Face ID";
     } else {
-      return 'Fingerprint';
+      return "Fingerprint";
     }
   };
 
@@ -84,26 +103,33 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const handleBiometricLogin = async () => {
     try {
       const biometricType = getBiometricType();
-      const promptMessage = Platform.OS === 'ios'
-        ? 'Use Face ID to login'
-        : 'Use Fingerprint to login';
-      const fallbackLabel = Platform.OS === 'ios' ? 'Use Passcode' : 'Use Password';
+      const promptMessage =
+        Platform.OS === "ios"
+          ? "Use Face ID to login"
+          : "Use Fingerprint to login";
+      const fallbackLabel =
+        Platform.OS === "ios" ? "Use Passcode" : "Use Password";
 
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage,
         fallbackLabel,
-        disableDeviceFallback: Platform.OS === 'ios' ? true : false, // Disable passcode fallback on iOS
-        cancelLabel: 'Cancel',
+        disableDeviceFallback: Platform.OS === "ios" ? true : false, // Disable passcode fallback on iOS
+        cancelLabel: "Cancel",
       });
 
       if (result.success) {
         // Get saved credentials
-        const savedUsername = await AsyncStorage.getItem('savedUsername');
-        const savedPassword = await AsyncStorage.getItem('savedPassword');
+        const savedUsername = await AsyncStorage.getItem("savedUsername");
+        const savedPassword = await AsyncStorage.getItem("savedPassword");
 
         if (savedUsername && savedPassword) {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          dispatch(authenticateUser({ username: savedUsername, password: savedPassword }));
+          dispatch(
+            authenticateUser({
+              username: savedUsername,
+              password: savedPassword,
+            })
+          );
         } else {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           // Show error - no saved credentials
@@ -112,11 +138,10 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
     } catch (error) {
-      console.log('Biometric login error:', error);
+      console.log("Biometric login error:", error);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
-
 
   useEffect(() => {
     if (error) {
@@ -135,18 +160,18 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     }
   }, [isAuthenticated]);
 
-
-
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'android' ? 20 : 0}
-      style={styles.container}>
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "android" ? 20 : 0}
+      style={styles.container}
+    >
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.scrollViewContent}
         keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.container_main}>
           <View style={styles.titleContainer}>
             <BlueLogo />
@@ -168,7 +193,10 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             />
             <View style={styles.passwordWrapper}>
               <TextInput
-                style={[styles.testInput, passwordFocused && styles.focusedInput]}
+                style={[
+                  styles.testInput,
+                  passwordFocused && styles.focusedInput,
+                ]}
                 placeholder="Password"
                 value={password}
                 onChangeText={setPassword}
@@ -191,16 +219,24 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             </View>
           </View>
 
-          <ErrorMessage message="Incorrect Username or Password" visible={!!error} />
+          <ErrorMessage
+            message="Incorrect Username or Password"
+            visible={!!error}
+          />
           <TouchableOpacity
-            onPress={() => navigation.navigate('ForgotPassword')}
+            onPress={() => navigation.navigate("ForgotPassword")}
             style={styles.forgotPasswordContainer}
             activeOpacity={0.7}
           >
             <Text style={styles.forgotPassword}>Forgot password?</Text>
           </TouchableOpacity>
           <View style={styles.button}>
-            <PrimaryButton title="Log in" onPress={handleLogin} disabled={!username || !password} isLoading={isLoading} />
+            <PrimaryButton
+              title="Log in"
+              onPress={handleLogin}
+              disabled={!username || !password}
+              isLoading={isLoading}
+            />
           </View>
 
           {/* Biometric Login Button */}
@@ -208,23 +244,23 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             <TouchableOpacity
               style={[
                 styles.touchIdButton,
-                Platform.OS === 'ios' && styles.faceIdButton
+                Platform.OS === "ios" && styles.faceIdButton,
               ]}
               onPress={handleBiometricLogin}
               activeOpacity={0.7}
             >
-              <Fingerprint
-                size={Platform.OS === 'ios' ? 28 : 24}
-                color={Platform.OS === 'ios' ? colors.accent_blue : colors.gray700}
-              />
+              {Platform.OS === "ios" ? (
+                <UnlockIphone color={colors.accent_blue} />
+              ) : (
+                <UnlockAndroid color={colors.accent_blue} />
+              )}
             </TouchableOpacity>
           )}
         </View>
       </ScrollView>
-    </KeyboardAvoidingView >
+    </KeyboardAvoidingView>
   );
 };
-
 
 const styles = StyleSheet.create({
   scrollViewContent: {
@@ -236,7 +272,7 @@ const styles = StyleSheet.create({
 
   inputFieldContainer: {
     gap: 12,
-    marginBottom: 16
+    marginBottom: 16,
   },
   titleContainer: {
     marginTop: 24,
@@ -256,61 +292,61 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontFamily: 'Inter',
-    fontStyle: 'normal',
-    fontWeight: '600',
+    fontFamily: "Inter",
+    fontStyle: "normal",
+    fontWeight: "600",
     fontSize: 24,
     lineHeight: 32,
     letterSpacing: -0.01,
     color: colors.gray900,
   },
   subtitle: {
-    fontFamily: 'Inter',
-    fontStyle: 'normal',
-    fontWeight: '400',
+    fontFamily: "Inter",
+    fontStyle: "normal",
+    fontWeight: "400",
     fontSize: 14,
     lineHeight: 20,
     color: colors.gray500,
   },
   forgotPassword: {
-    alignSelf: 'flex-end',
-    fontFamily: 'Inter',
-    fontStyle: 'normal',
-    fontWeight: '500',
+    alignSelf: "flex-end",
+    fontFamily: "Inter",
+    fontStyle: "normal",
+    fontWeight: "500",
     fontSize: 14,
     lineHeight: 20,
     color: colors.accent_blue,
   },
   forgotPasswordContainer: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     paddingVertical: 8,
     paddingHorizontal: 4,
   },
   testInput: {
     borderWidth: 1,
-    borderColor: '#D3D3D3',
+    borderColor: "#D3D3D3",
     borderRadius: 0,
     backgroundColor: colors.white,
     paddingHorizontal: 14,
     paddingVertical: 12,
     height: 50,
     fontSize: 16,
-    color: '#101828',
+    color: "#101828",
     marginBottom: 12,
   },
   focusedInput: {
-    borderColor: colors.accent_blue_light || '#5B9BD5',
-    shadowColor: '#101828',
+    borderColor: colors.accent_blue_light || "#5B9BD5",
+    shadowColor: "#101828",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 4,
   },
   passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#D3D3D3',
+    borderColor: "#D3D3D3",
     borderRadius: 0,
     backgroundColor: colors.white,
     paddingHorizontal: 14,
@@ -321,40 +357,40 @@ const styles = StyleSheet.create({
   passwordInput: {
     flex: 1,
     fontSize: 16,
-    color: '#101828',
-    height: '100%',
+    color: "#101828",
+    height: "100%",
   },
   passwordWrapper: {
-    position: 'relative',
+    position: "relative",
     marginBottom: 12,
   },
   eyeIconAbsolute: {
-    position: 'absolute',
+    position: "absolute",
     right: 14,
     top: 12,
     padding: 5,
     zIndex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   touchIdButton: {
-    marginTop: 16,
-    width: 60,
-    height: 60,
-    backgroundColor: colors.gray200,
+    marginTop: 50,
+    width: 100,
+    height: 100,
+    // backgroundColor: colors.gray200,
     borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    alignSelf: 'center',
+    alignItems: "center",
+    justifyContent: "center",
+    // borderWidth: 1,
+    // borderColor: colors.gray300,
+    alignSelf: "center",
   },
   faceIdButton: {
     width: 70,
     height: 70,
-    backgroundColor: colors.accent_blue_light || '#E3F2FD',
-    borderColor: colors.accent_blue,
-    borderWidth: 2,
+    // backgroundColor: colors.accent_blue_light || "#E3F2FD",
+    // borderColor: colors.accent_blue,
+    // borderWidth: 2,
   },
 });
 

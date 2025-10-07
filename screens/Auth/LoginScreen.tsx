@@ -132,10 +132,16 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
           );
         } else {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-          // Show error - no saved credentials
         }
       } else {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        // Handle different failure reasons silently for login
+        if (result.error === "user_cancel") {
+          // Don't show error for user cancellation during login
+        } else if (result.error === "authentication_failed") {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        } else {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        }
       }
     } catch (error) {
       console.log("Biometric login error:", error);

@@ -29,37 +29,52 @@ const Notifications: React.FC<NotificationsProps> = ({ navigation }) => {
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
-
 				await dispatch(loginUser()).unwrap();
+
+				// Use current date range instead of hardcoded May 2025
+				const currentDate = new Date();
+				const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+				const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+				const startDateStr = startDate.toISOString().split('T')[0];
+				const endDateStr = endDate.toISOString().split('T')[0];
+
 				await dispatch(getCalender({
 					id: id,
 					page: 1,
 					limit: 50,
 					filterByDate: 'range',
-					startDate: '2025-05-01',
-					endDate: '2025-05-30',
+					startDate: startDateStr,
+					endDate: endDateStr,
 				})).unwrap();
 			} catch (error) {
 			}
 		};
 
 		fetchData();
-	}, [dispatch]);
+	}, [dispatch, id]);
 
 	useEffect(() => {
 		const fetchData = async () => {
 			if (refreshing === true) {
 				try {
-
-
 					await dispatch(loginUser()).unwrap();
+
+					// Use current date range
+					const currentDate = new Date();
+					const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+					const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+					const startDateStr = startDate.toISOString().split('T')[0];
+					const endDateStr = endDate.toISOString().split('T')[0];
+
 					await dispatch(getCalender({
 						id: id,
 						page: 1,
 						limit: 50,
 						filterByDate: 'range',
-						startDate: '2025-05-01',
-						endDate: '2025-05-30',
+						startDate: startDateStr,
+						endDate: endDateStr,
 					})).unwrap();
 				} catch (error) {
 				}
@@ -67,7 +82,7 @@ const Notifications: React.FC<NotificationsProps> = ({ navigation }) => {
 		};
 
 		fetchData();
-	}, [refreshing, dispatch]);
+	}, [refreshing, dispatch, id]);
 
 
 	return (

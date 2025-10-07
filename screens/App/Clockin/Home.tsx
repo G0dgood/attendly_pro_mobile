@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
 
 
 	scrollViewContent: {
-		paddingBottom: 100,
+		paddingBottom: Platform.OS === 'android' ? 200 : 100,
 	},
 
 	overviewText: {

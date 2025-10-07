@@ -1,5 +1,7 @@
-import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect } from 'react'
+import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View, Switch, Platform } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import * as LocalAuthentication from 'expo-local-authentication';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRefresh } from '@/Context/RefreshContext';
 import { colors } from '@/css/colorsIndex';
 import { RightGrayAngle } from '@/assets/svg/RightGrayAngle';
@@ -19,6 +21,8 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
 	const { logindata, loginisLoading } = useAppSelector((state: any) => state.clock);
 	const { refreshing, onRefresh } = useRefresh();
 	const dispatch = useDispatch<any>();
+	const [isTouchIdEnabled, setIsTouchIdEnabled] = useState(false);
+	const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
 	const profileName = logindata?.data?.user;
 	const firstLetter = typeof profileName?.name === 'string' && profileName?.name?.trim()
 		? profileName?.name?.trim()[0].toUpperCase()
@@ -37,6 +41,30 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
 		fetchData();
 	}, [dispatch]);
 
+	// Check biometric availability
+	useEffect(() => {
+		const checkBiometricAvailability = async () => {
+			try {
+				const hasHardware = await LocalAuthentication.hasHardwareAsync();
+				const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+				const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
+				const touchIdEnabled = await AsyncStorage.getItem('touchIdEnabled');
+
+				console.log('Biometric check results:');
+				console.log('Has Hardware:', hasHardware);
+				console.log('Is Enrolled:', isEnrolled);
+				console.log('Supported Types:', supportedTypes);
+				console.log('Touch ID Enabled:', touchIdEnabled);
+
+				setIsBiometricAvailable(hasHardware && isEnrolled);
+				setIsTouchIdEnabled(touchIdEnabled === 'true');
+			} catch (error) {
+				console.log('Error checking biometric availability:', error);
+			}
+		};
+
+		checkBiometricAvailability();
+	}, []);
 
 	const handleSignOut = () => {
 		Alert.alert(
@@ -57,6 +85,40 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
 
 	const handlePress = () => {
 		navigation.navigate('ChangePassword')
+	};
+
+	const handleTouchIdToggle = async (value: boolean) => {
+		if (value) {
+			// Enable biometric authentication - authenticate first
+			try {
+				const biometricType = Platform.OS === 'ios' ? 'Face ID' : 'Fingerprint';
+				const promptMessage = `Enable ${biometricType} for quick login`;
+				const fallbackLabel = Platform.OS === 'ios' ? 'Use Passcode' : 'Use Password';
+
+				const result = await LocalAuthentication.authenticateAsync({
+					promptMessage,
+					fallbackLabel,
+					disableDeviceFallback: Platform.OS === 'ios' ? true : false, // Disable passcode fallback on iOS
+					cancelLabel: 'Cancel',
+				});
+
+				if (result.success) {
+					setIsTouchIdEnabled(true);
+					await AsyncStorage.setItem('touchIdEnabled', 'true');
+					Alert.alert('Success', `${biometricType} has been enabled for quick login`);
+				} else {
+					Alert.alert('Authentication Failed', `${biometricType} authentication was cancelled or failed`);
+				}
+			} catch (error) {
+				Alert.alert('Error', 'Failed to enable biometric authentication');
+			}
+		} else {
+			// Disable biometric authentication
+			const biometricType = Platform.OS === 'ios' ? 'Face ID' : 'Fingerprint';
+			setIsTouchIdEnabled(false);
+			await AsyncStorage.setItem('touchIdEnabled', 'false');
+			Alert.alert(`${biometricType} Disabled`, `${biometricType} has been disabled for quick login`);
+		}
 	};
 
 
@@ -112,6 +174,21 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
 										<RightGrayAngle />
 									</View>
 								</TouchableOpacity>}
+
+							{/* Biometric Authentication Toggle */}
+							{isBiometricAvailable && (
+								<View style={styles.passwordsContainerMain}>
+									<Text style={styles.passwordLabelText}>
+										{Platform.OS === 'ios' ? 'Face ID' : 'Fingerprint'} Login:
+									</Text>
+									<Switch
+										value={isTouchIdEnabled}
+										onValueChange={handleTouchIdToggle}
+										trackColor={{ false: colors.gray300, true: colors.accent_blue }}
+										thumbColor={isTouchIdEnabled ? colors.white : colors.gray500}
+									/>
+								</View>
+							)}
 						</View>
 					</View>
 

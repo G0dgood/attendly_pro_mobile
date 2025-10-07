@@ -1,11 +1,21 @@
 {
   "compilerOptions": {
-    "typeRoots": ["./node_modules/@types"],
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
     "strict": true,
     "allowSyntheticDefaultImports": true,
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", "svg.d.ts", "index.js"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "svg.d.ts",
+    "index.js"
+  ],
+  "extends": "expo/tsconfig.base"
 }

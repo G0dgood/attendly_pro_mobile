@@ -28,7 +28,7 @@ export default Header;
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 8,
-    paddingTop: Platform.OS === "ios" ? 62 : 20,
+    paddingTop: Platform.OS === "ios" ? 62 : 40,
     paddingBottom: Platform.OS === "ios" ? 5 : 5,
     backgroundColor: colors.white,
     borderBottomWidth: StyleSheet.hairlineWidth,

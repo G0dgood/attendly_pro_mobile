@@ -58,7 +58,8 @@ const RootNavigator: React.FC = () => {
 	);
 };
 
-export default RootNavigator;
+const AppStack = RootNavigator;
+export default AppStack;
 
 const styles = StyleSheet.create({
 

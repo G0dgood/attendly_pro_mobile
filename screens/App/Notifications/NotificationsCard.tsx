@@ -16,7 +16,13 @@ type NotificationsProps = {
 
 const NotificationsCard: React.FC<NotificationsProps> = () => {
 	const { calenderdata }: any = useAppSelector((state) => state.attendance);
-	const attendanceData = calenderdata?.data?.data?.data || [];
+
+	// Try different possible data paths
+	const attendanceData = calenderdata?.data?.data?.data ||
+		calenderdata?.data?.data ||
+		calenderdata?.data ||
+		calenderdata ||
+		[];
 
 	const [selectedNotification, setSelectedNotification] = useState(null);
 
@@ -34,29 +40,36 @@ const NotificationsCard: React.FC<NotificationsProps> = () => {
 
 	return (
 		<View style={styles.top_container}>
-			{notifications?.map((notification: any) => (
-				<View key={notification.id} style={styles.card}>
-					{notification.icon}
-					<View style={styles.text_title_container}>
-						<View>
-							<View style={styles.title_container}>
-								<Text style={styles.title}>{notification.title}</Text>
-								<TouchableOpacity>
-									<Close />
+			{notifications && notifications.length > 0 ? (
+				notifications.map((notification: any) => (
+					<View key={notification.id} style={styles.card}>
+						{notification.icon}
+						<View style={styles.text_title_container}>
+							<View>
+								<View style={styles.title_container}>
+									<Text style={styles.title}>{notification.title}</Text>
+									<TouchableOpacity>
+										<Close />
+									</TouchableOpacity>
+								</View>
+								<Text style={styles.reminderText}>{notification.message}</Text>
+							</View>
+							<View style={styles.time_container}>
+								<Text style={styles.dateText}>{notification.date}</Text>
+								<TouchableOpacity style={styles.go_container} onPress={() => openModal(notification)}>
+									<Text  >Go</Text>
+									<BlueRightAngle />
 								</TouchableOpacity>
 							</View>
-							<Text style={styles.reminderText}>{notification.message}</Text>
-						</View>
-						<View style={styles.time_container}>
-							<Text style={styles.dateText}>{notification.date}</Text>
-							<TouchableOpacity style={styles.go_container} onPress={() => openModal(notification)}>
-								<Text  >Go</Text>
-								<BlueRightAngle />
-							</TouchableOpacity>
 						</View>
 					</View>
+				))
+			) : (
+				<View style={styles.emptyContainer}>
+					<Text style={styles.emptyText}>No notifications available</Text>
+					<Text style={styles.emptySubtext}>You're all caught up!</Text>
 				</View>
-			))}
+			)}
 
 			{/* Modal for notification details */}
 			<NotificationsModal
@@ -146,6 +159,25 @@ const styles = StyleSheet.create({
 		marginHorizontal: 20,
 		marginTop: 16,
 		gap: 16
+	},
+
+	emptyContainer: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+		paddingVertical: 60,
+	},
+	emptyText: {
+		fontFamily: 'Inter',
+		fontSize: 18,
+		fontWeight: '600',
+		color: colors.gray600,
+		marginBottom: 8,
+	},
+	emptySubtext: {
+		fontFamily: 'Inter',
+		fontSize: 14,
+		color: colors.gray400,
 	},
 
 

@@ -35,8 +35,9 @@ const TextInputFieldPassword: React.FC<TextInputFieldPasswordProps> = ({
         onChangeText={onChangeText}
         secureTextEntry={secureTextEntry}
         onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(isFocused)}
+        onBlur={() => setIsFocused(false)}
         autoCapitalize="none"
+        returnKeyType="done"
       />
       {showPasswordToggle && (
         <TouchableOpacity onPress={onTogglePassword} style={styles.iconContainer}>
@@ -59,37 +60,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#D3D3D3',
-    borderRadius: 8,
+    borderRadius: 0,
     backgroundColor: colors.white,
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingVertical: 12,
     height: 50,
   },
   activeContainer: {
-    height: 50,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    gap: 8,
-    backgroundColor: colors.white,
-    borderColor: colors.accent_blue_light,
-    borderWidth: 1,
-    borderRadius: 4,
+    borderColor: colors.accent_blue_light || '#5B9BD5',
     shadowColor: '#101828',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
-    elevation: 4,
+    elevation: 4, // For Android
   },
   input: {
-    fontFamily: 'Inter,',
-    fontStyle: 'normal',
-    fontWeight: '400',
+    fontFamily: 'Inter',
     fontSize: 16,
-    color: '#667085',
+    color: '#101828',
     flex: 1,
-    height: 50,
+    height: '100%',
   },
   iconContainer: {
     paddingHorizontal: 5,

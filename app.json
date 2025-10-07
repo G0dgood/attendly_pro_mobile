@@ -24,7 +24,10 @@
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.attendly"
     },
-    "plugins": [],
+    "plugins": [
+      "expo-router",
+      "expo-web-browser"
+    ],
     "extra": {
       "eas": {
         "projectId": "6810a182-b56c-4999-83ee-23cd82531fa1"

@@ -1,5 +1,6 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ColorSchemeName, Platform, useColorScheme, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React from 'react';
 import Colors from '../constants/Colors';
 import Home from '@/screens/App/Clockin/Home';
@@ -17,6 +18,11 @@ import Profile from '@/screens/App/Profile/Profile';
 const BottomTab = createBottomTabNavigator<RootTabParamList>();
 const BottomTabNavigator = () => {
 	const colorScheme: ColorSchemeName = useColorScheme() || 'light';
+	const insets = useSafeAreaInsets();
+
+	// Fallback for Android system navigation bar height
+	const androidNavBarHeight = Platform.OS === 'android' ? 48 : 0;
+	const bottomInset = Platform.OS === 'android' ? Math.max(insets.bottom, androidNavBarHeight) : insets.bottom;
 
 
 	// Shared header button component for going back
@@ -34,25 +40,47 @@ const BottomTabNavigator = () => {
 				headerShown: false,
 				tabBarActiveTintColor: Colors[colorScheme].tabIconSelected,
 				tabBarInactiveTintColor: Colors[colorScheme].tabIconDefault,
-				tabBarStyle: {
-					height: Platform.OS === 'android' ? 60 : 80,
-					paddingBottom: Platform.OS === 'android' ? 10 : 30,
-					paddingTop: 10,
-				},
-				tabBarLabelStyle: {
+				tabBarStyle: Platform.OS === 'android' ? {
+					height: 40 + bottomInset,
+					paddingBottom: bottomInset + 2,
+					paddingTop: 2,
+					backgroundColor: colors.white,
+					borderTopWidth: 1,
+					borderTopColor: colors.gray200,
+					elevation: 12,
+					shadowColor: '#000',
+					shadowOffset: { width: 0, height: -3 },
+					shadowOpacity: 0.15,
+					shadowRadius: 6,
+					position: 'absolute',
+					bottom: 0,
+				} : undefined,
+				tabBarLabelStyle: Platform.OS === 'android' ? {
+					fontSize: 11,
+					fontWeight: '600',
+					marginTop: 1,
+				} : {
 					fontSize: 10,
+					fontWeight: '500',
 				},
-				tabBarIconStyle: {
+				tabBarIconStyle: Platform.OS === 'android' ? {
 					width: 20,
 					height: 20,
+				} : {
+					width: 24,
+					height: 24,
+				},
+				tabBarItemStyle: Platform.OS === 'android' ? {
+					paddingVertical: 2,
+				} : {
+					paddingVertical: 4,
 				},
 			}}>
 			<BottomTab.Screen
 				name="Home"
 				component={Home}
-
 				options={{
-					title: '',
+					title: 'Home',
 					headerTitle: '',
 					tabBarIcon: ({ size, color }) => (
 						<HomeIcon size={size} color={color} />
@@ -63,7 +91,7 @@ const BottomTabNavigator = () => {
 				name="Attendance"
 				component={Attendance}
 				options={{
-					title: '',
+					title: 'Attendance',
 					headerTitle: '',
 					headerShown: true,
 					headerLeft: () => renderHeaderLeft("Attendance overview", styles.back_btn_text),
@@ -76,7 +104,7 @@ const BottomTabNavigator = () => {
 				name="Profile"
 				component={Profile}
 				options={{
-					title: '',
+					title: 'Profile',
 					headerTitle: '',
 					headerShown: true,
 					headerLeft: () => renderHeaderLeft("Profile", styles.back_btn_text),

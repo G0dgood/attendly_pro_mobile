@@ -8,6 +8,7 @@ interface TextInputFieldProps {
   onChangeText: (text: string) => void;
   onFocus?: (e: any) => void;
   onBlur?: (e: any) => void;
+  onSubmitEditing?: () => void;
 }
 
 const TextInputField: React.FC<TextInputFieldProps> = ({
@@ -16,6 +17,7 @@ const TextInputField: React.FC<TextInputFieldProps> = ({
   onChangeText,
   onFocus: onFocusProp,
   onBlur: onBlurProp,
+  onSubmitEditing,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
@@ -40,10 +42,10 @@ const TextInputField: React.FC<TextInputFieldProps> = ({
         value={value}
         onChangeText={onChangeText}
         onFocus={handleFocus}
-        // onBlur={handleBlur}  
+        onBlur={handleBlur}
         autoCapitalize="none"
-        keyboardType="default"
-        allowFontScaling={false}
+        returnKeyType="next"
+        onSubmitEditing={onSubmitEditing}
       />
     </View>
   );
@@ -51,14 +53,12 @@ const TextInputField: React.FC<TextInputFieldProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#D3D3D3',
-    borderRadius: 4,
+    borderRadius: 0,
     backgroundColor: colors.white || '#FFFFFF',
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingVertical: 12,
     height: 50,
   },
   activeContainer: {
@@ -71,10 +71,8 @@ const styles = StyleSheet.create({
   },
   input: {
     fontFamily: 'Inter',
-    fontStyle: 'normal',
-    fontWeight: '400',
     fontSize: 16,
-    color: '#667085',
+    color: '#101828',
     flex: 1,
     height: '100%',
   },

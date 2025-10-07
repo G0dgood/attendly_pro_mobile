@@ -28,7 +28,7 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({ title, onPress, disabled 
 const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.accent_blue,
-    borderRadius: 4,
+    borderRadius: 0,
     alignItems: 'center',
     height: 50,
     flexDirection: 'row',

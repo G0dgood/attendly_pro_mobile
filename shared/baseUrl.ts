@@ -1,4 +1,4 @@
-export const baseUrl = "https://attendance-tracker-backend-8z00.onrender.com"; 
+export const baseUrl = "https://uat-software.outcess.com:7000"; 
 
 type QueryParams = {
   path?: string; 

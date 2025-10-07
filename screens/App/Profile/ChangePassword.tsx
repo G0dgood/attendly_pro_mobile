@@ -5,9 +5,11 @@ import {
 	Text,
 	TouchableOpacity,
 	View,
-	Alert
+	Alert,
+	Platform
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { button, colors } from '@/css/colorsIndex';
 import { RootStackParamList } from '@/types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -22,6 +24,7 @@ type ChangePasswordProps = {
 };
 
 const ChangePassword: React.FC<ChangePasswordProps> = ({ navigation }) => {
+	const insets = useSafeAreaInsets();
 	const { isLoading, isSuccess, isError, message } = useAppSelector((state: any) => state.clock);
 	const dispatch = useAppDispatch();
 
@@ -63,7 +66,14 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ navigation }) => {
 			<View style={styles.container}>
 				<ScrollView
 					contentInsetAdjustmentBehavior="automatic"
-					contentContainerStyle={styles.scrollViewContent}>
+					contentContainerStyle={[
+						styles.scrollViewContent,
+						{
+							paddingBottom: Platform.OS === 'android'
+								? Math.max(100, insets.bottom + 20)
+								: 100
+						}
+					]}>
 					<View style={styles.inputContainer}>
 						<View style={styles.inputFieldContainer}>
 							{/* Label and Input for Old Password */}
@@ -130,7 +140,8 @@ const styles = StyleSheet.create({
 	},
 	btn: {
 		marginHorizontal: 24,
-		marginBottom: 20,
+		marginBottom: 10,
+		marginTop: 20,
 	},
 	inputFieldContainer: {
 		gap: 24,

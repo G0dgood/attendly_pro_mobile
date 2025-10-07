@@ -59,7 +59,6 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         await AsyncStorage.setItem("savedUsername", username);
         await AsyncStorage.setItem("savedPassword", password);
       } catch (error) {
-        console.log("Error saving credentials:", error);
       }
     }
   };
@@ -74,16 +73,10 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
           await LocalAuthentication.supportedAuthenticationTypesAsync();
         const touchIdEnabled = await AsyncStorage.getItem("touchIdEnabled");
 
-        console.log("Biometric check results:");
-        console.log("Has Hardware:", hasHardware);
-        console.log("Is Enrolled:", isEnrolled);
-        console.log("Supported Types:", supportedTypes);
-        console.log("Touch ID Enabled:", touchIdEnabled);
 
         setIsBiometricAvailable(hasHardware && isEnrolled);
         setIsTouchIdEnabled(touchIdEnabled === "true");
       } catch (error) {
-        console.log("Error checking biometric availability:", error);
       }
     };
 
@@ -113,7 +106,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage,
         fallbackLabel,
-        disableDeviceFallback: Platform.OS === "ios" ? true : false, // Disable passcode fallback on iOS
+        disableDeviceFallback: false, // Allow PIN/Passcode fallback
         cancelLabel: "Cancel",
       });
 
@@ -144,7 +137,6 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         }
       }
     } catch (error) {
-      console.log("Biometric login error:", error);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };

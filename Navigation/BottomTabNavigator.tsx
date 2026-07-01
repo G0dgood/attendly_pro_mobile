@@ -40,39 +40,33 @@ const BottomTabNavigator = () => {
 				headerShown: false,
 				tabBarActiveTintColor: Colors[colorScheme].tabIconSelected,
 				tabBarInactiveTintColor: Colors[colorScheme].tabIconDefault,
-				tabBarStyle: Platform.OS === 'android' ? {
-					height: 40 + bottomInset,
-					paddingBottom: bottomInset + 2,
-					paddingTop: 2,
+				tabBarStyle: {
+					height: Platform.OS === 'android' ? 62 + bottomInset : 66 + bottomInset,
+					paddingBottom: Platform.OS === 'android' ? bottomInset + 6 : bottomInset + 4,
+					paddingTop: 8,
 					backgroundColor: colors.white,
 					borderTopWidth: 1,
 					borderTopColor: colors.gray200,
 					elevation: 12,
 					shadowColor: '#000',
 					shadowOffset: { width: 0, height: -3 },
-					shadowOpacity: 0.15,
+					shadowOpacity: 0.1,
 					shadowRadius: 6,
-					position: 'absolute',
-					bottom: 0,
-				} : undefined,
-				tabBarLabelStyle: Platform.OS === 'android' ? {
-					fontSize: 11,
+					...(Platform.OS === 'android' ? {
+						position: 'absolute',
+						bottom: 0,
+					} : {}),
+				},
+				tabBarLabelStyle: {
+					fontSize: 12,
 					fontWeight: '600',
-					marginTop: 1,
-				} : {
-					fontSize: 10,
-					fontWeight: '500',
+					marginTop: 2,
 				},
-				tabBarIconStyle: Platform.OS === 'android' ? {
-					width: 20,
-					height: 20,
-				} : {
-					width: 24,
-					height: 24,
+				tabBarIconStyle: {
+					width: 28,
+					height: 28,
 				},
-				tabBarItemStyle: Platform.OS === 'android' ? {
-					paddingVertical: 2,
-				} : {
+				tabBarItemStyle: {
 					paddingVertical: 4,
 				},
 			}}>
@@ -82,8 +76,8 @@ const BottomTabNavigator = () => {
 				options={{
 					title: 'Home',
 					headerTitle: '',
-					tabBarIcon: ({ size, color }) => (
-						<HomeIcon size={size} color={color} />
+					tabBarIcon: ({ color }) => (
+						<HomeIcon size={28} color={color} />
 					),
 				}}
 			/>
@@ -95,8 +89,8 @@ const BottomTabNavigator = () => {
 					headerTitle: '',
 					headerShown: true,
 					headerLeft: () => renderHeaderLeft("Attendance overview", styles.back_btn_text),
-					tabBarIcon: ({ size, color }) => (
-						<AttendanceIcon size={size} color={color} />
+					tabBarIcon: ({ color }) => (
+						<AttendanceIcon size={28} color={color} />
 					),
 				}}
 			/>
@@ -108,8 +102,8 @@ const BottomTabNavigator = () => {
 					headerTitle: '',
 					headerShown: true,
 					headerLeft: () => renderHeaderLeft("Profile", styles.back_btn_text),
-					tabBarIcon: ({ size, color }) => (
-						<LeaveIcon size={size} color={color} />
+					tabBarIcon: ({ color }) => (
+						<LeaveIcon size={28} color={color} />
 					),
 				}}
 			/>

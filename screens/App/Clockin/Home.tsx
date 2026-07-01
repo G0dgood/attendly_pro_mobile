@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
 	},
 
 	container: {
-		flexGrow: 1,
+		flex: 1,
 		paddingTop: Platform.OS === "android" ? 40 : 55,
 		backgroundColor: colors.background,
 	}

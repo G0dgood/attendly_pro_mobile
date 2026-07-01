@@ -35,6 +35,7 @@
     "expo-web-browser": "~15.0.8",
     "glob": "^11.0.2",
     "install": "^0.13.0",
+    "jsqr": "^1.4.0",
     "moment": "^2.30.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",

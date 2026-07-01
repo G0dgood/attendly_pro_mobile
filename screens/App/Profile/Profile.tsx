@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
 	},
 
 	container: {
-		flexGrow: 1,
+		flex: 1,
 		paddingTop: 10,
 		backgroundColor: colors.background,
 	},

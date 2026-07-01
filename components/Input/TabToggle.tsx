@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
 		marginBottom: 1,
 	},
 	mainContainer: {
-		flexGrow: 1,
+		flex: 1,
 	},
 	tabContainer: {
 		paddingVertical: 4,

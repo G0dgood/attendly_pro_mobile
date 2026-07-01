@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Linking, Platform, TextInput } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Camera, CameraView } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,23 +17,11 @@ const BarCodeCamera = ({ navigation }: any) => {
 	const [token, setToken] = useState<string | null>(null);
 	const [userId, setUserId] = useState<string | any>(null);
 	const [hasClockedIn, setHasClockedIn] = useState(false);
-	const [manualToken, setManualToken] = useState("");
 	const [input, setInput] = useState({
 		token: "",
 		userId: "",
 	});
 	const dispatch = useAppDispatch();
-
-	const showAlert = (title: string, message: string, buttons?: any[]) => {
-		if (Platform.OS === 'web') {
-			alert(`${title ? title + ': ' : ''}${message}`);
-			if (buttons && buttons.length > 0 && buttons[0].onPress) {
-				buttons[0].onPress();
-			}
-		} else {
-			Alert.alert(title, message, buttons);
-		}
-	};
 
 	useEffect(() => {
 		const fetchUser = async () => {
@@ -64,7 +52,7 @@ const BarCodeCamera = ({ navigation }: any) => {
 	// Prefill the form when modal opens
 	useEffect(() => {
 		if (handleAttendanceisSuccess) {
-			showAlert('Success', handleAttendancemessage, [
+			Alert.alert('Success', handleAttendancemessage, [
 				{
 					text: 'OK',
 					onPress: () => {
@@ -79,7 +67,7 @@ const BarCodeCamera = ({ navigation }: any) => {
 
 	useEffect(() => {
 		if (handleAttendanceisError) {
-			showAlert('Error', handleAttendancemessage, [
+			Alert.alert('Error', handleAttendancemessage, [
 				{ text: 'OK' },
 			]);
 			dispatch(reset());
@@ -98,10 +86,6 @@ const BarCodeCamera = ({ navigation }: any) => {
 
 	useEffect(() => {
 		const requestPermission = async () => {
-			if (Platform.OS === 'web') {
-				setHasPermission(true);
-				return;
-			}
 			const { status } = await Camera.requestCameraPermissionsAsync();
 			setHasPermission(status === 'granted');
 		};
@@ -114,53 +98,12 @@ const BarCodeCamera = ({ navigation }: any) => {
 	};
 
 	const handleClockAction = async () => {
-		const payload = Platform.OS === 'web' 
-			? { token: manualToken, userId } 
-			: input;
-		dispatch(handleAttendance(payload));
+		dispatch(handleAttendance(input));
 	};
 
 	const handleClose = () => {
 		navigation.goBack();
 	};
-
-	if (Platform.OS === 'web') {
-		return (
-			<View style={styles.webContainer}>
-				<TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-					<BlackX />
-				</TouchableOpacity>
-				<View style={styles.webForm}>
-					<Text style={styles.webTitle}>
-						{hasClockedIn ? 'Clock Out' : 'Clock In'} (Web)
-					</Text>
-					<Text style={styles.webSubtitle}>
-						Enter the QR code token displayed on the Admin Dashboard to clock {hasClockedIn ? 'out' : 'in'}.
-					</Text>
-					<TextInput
-						style={styles.webInput}
-						placeholder="Paste QR Code Token here..."
-						value={manualToken}
-						onChangeText={(text) => {
-							setManualToken(text);
-							setToken(text);
-						}}
-					/>
-					<TouchableOpacity 
-						style={[styles.buttonContainer, { marginTop: 24, width: '100%' }]} 
-						onPress={handleClockAction}
-						disabled={!manualToken || handleAttendanceisLoading}
-					>
-						{handleAttendanceisLoading ? (
-							<ActivityIndicator color={colors.white} size="small" />
-						) : (
-							<Text style={styles.text}>{hasClockedIn ? 'Clock Out' : 'Clock In'}</Text>
-						)}
-					</TouchableOpacity>
-				</View>
-			</View>
-		);
-	}
 
 	// -- UI for permissions or camera issues --
 	if (hasPermission === null) {
@@ -330,44 +273,6 @@ const styles = StyleSheet.create({
 	scanAgainText: {
 		fontWeight: '500',
 		color: '#111827',
-	},
-	webContainer: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-		backgroundColor: '#fff',
-		paddingHorizontal: 24,
-		paddingTop: 80,
-	},
-	webForm: {
-		width: '100%',
-		maxWidth: 400,
-		alignItems: 'center',
-	},
-	webTitle: {
-		fontSize: 24,
-		fontWeight: '600',
-		color: colors.gray900,
-		marginBottom: 12,
-		textAlign: 'center',
-	},
-	webSubtitle: {
-		fontSize: 14,
-		color: colors.gray500,
-		textAlign: 'center',
-		marginBottom: 24,
-		lineHeight: 20,
-	},
-	webInput: {
-		width: '100%',
-		height: 48,
-		borderWidth: 1,
-		borderColor: '#d1d5db',
-		borderRadius: 8,
-		paddingHorizontal: 16,
-		fontSize: 16,
-		color: '#111827',
-		backgroundColor: '#f9fafb',
 	},
 });
 

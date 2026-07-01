@@ -137,7 +137,9 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 
 						<Image source={require('../../../assets/images/Barcode.png')} />
 						<TouchableOpacity style={styles.button} onPress={handlePress}>
-							<Text style={styles.text}>Clock In</Text>
+							<Text style={styles.text}>
+								{clockIn && !clockOut ? 'Clock Out' : 'Clock In'}
+							</Text>
 						</TouchableOpacity>
 					</View>
 

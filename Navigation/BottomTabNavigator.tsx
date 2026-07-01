@@ -41,8 +41,12 @@ const BottomTabNavigator = () => {
 				tabBarActiveTintColor: Colors[colorScheme].tabIconSelected,
 				tabBarInactiveTintColor: Colors[colorScheme].tabIconDefault,
 				tabBarStyle: {
-					height: Platform.OS === 'android' ? 62 + bottomInset : 66 + bottomInset,
-					paddingBottom: Platform.OS === 'android' ? bottomInset + 6 : bottomInset + 4,
+					height: Platform.OS === 'web' 
+						? 80 
+						: (Platform.OS === 'android' ? 62 + bottomInset : 66 + bottomInset),
+					paddingBottom: Platform.OS === 'web' 
+						? 16 
+						: (Platform.OS === 'android' ? bottomInset + 6 : bottomInset + 4),
 					paddingTop: 8,
 					backgroundColor: colors.white,
 					borderTopWidth: 1,
@@ -67,7 +71,7 @@ const BottomTabNavigator = () => {
 					height: 28,
 				},
 				tabBarItemStyle: {
-					paddingVertical: 4,
+					paddingVertical: Platform.OS === 'web' ? 2 : 4,
 				},
 			}}>
 			<BottomTab.Screen

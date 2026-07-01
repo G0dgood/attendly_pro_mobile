@@ -1,6 +1,7 @@
 import { Alert, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import Headline from '@/components/Headline'
+import { CustomAlertModal } from '@/components/CustomAlertModal';
 import { colors } from '@/css/colorsIndex';
 import { BgHome } from '@/assets/svg/BgHome';
 import DaysCard from './DaysCard';
@@ -29,6 +30,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 	const { logindata } = useAppSelector((state: any) => state.clock);
 	const { refreshing, onRefresh } = useRefresh();
 	const { data, isLoading, message, isError } = useAppSelector((state: RootState) => state.attendance);
+	const [isSessionExpiredVisible, setIsSessionExpiredVisible] = useState(false);
 	const day = !data?.data?.data?.data ? [] : data?.data?.data?.data
 	const id = logindata?.data?.user?.id
 	const { currentDate } = useCurrentDate();
@@ -54,16 +56,7 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 
 			// Check for "Invalid token" in any of the messages
 			if (errorMessages.includes("Invalid token")) {
-				Alert.alert(
-					"Session Expired",
-					"Your session has expired. Do you want to log out?",
-					[
-						{
-							text: "Yes",
-							onPress: () => dispatch(logoutUser()),
-						},
-					]
-				);
+				setIsSessionExpiredVisible(true);
 			}
 			// Centralized dispatch reset
 			const resets = {
@@ -173,6 +166,16 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 					</View>
 				</View>
 			</ScrollView>
+			<CustomAlertModal
+				visible={isSessionExpiredVisible}
+				title="Session Expired"
+				message="Your session has expired. Please log in again."
+				onConfirm={() => {
+					setIsSessionExpiredVisible(false);
+					dispatch(logoutUser());
+				}}
+				confirmText="Ok"
+			/>
 		</View>
 	);
 };
@@ -332,7 +335,7 @@ const styles = StyleSheet.create({
 
 	container: {
 		flex: 1,
-		paddingTop: Platform.OS === "android" ? 40 : 55,
+		paddingTop: Platform.OS === 'web' ? 15 : (Platform.OS === "android" ? 40 : 55),
 		backgroundColor: colors.background,
 	}
 })

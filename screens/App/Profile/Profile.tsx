@@ -13,6 +13,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Skeleton } from '@rneui/base';
 import { useAppSelector } from '@/hooks/hooks';
 import { loginUser } from '@/features/clockInandOut/clockInSlice';
+import { CustomAlertModal } from '@/components/CustomAlertModal';
 
 // Define type for the Profile component props
 type ProfileProps = {
@@ -24,6 +25,7 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
 	const dispatch = useDispatch<any>();
 	const [isTouchIdEnabled, setIsTouchIdEnabled] = useState(false);
 	const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+	const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
 	const profileName = logindata?.data?.user;
 	const firstLetter = typeof profileName?.name === 'string' && profileName?.name?.trim()
 		? profileName?.name?.trim()[0].toUpperCase()
@@ -75,20 +77,7 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
 	}, []);
 
 	const handleSignOut = () => {
-		Alert.alert(
-			"Are you sure you want to sign out?",
-			"",
-			[
-				{
-					text: "No",
-					style: "cancel",
-				},
-				{
-					text: "Yes",
-					onPress: () => dispatch(logoutUser()),
-				},
-			]
-		);
+		setIsLogoutModalVisible(true);
 	};
 
 	const handlePress = () => {
@@ -244,6 +233,17 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
 					<Text style={styles.footerVersionText}>Version {appVersion}</Text>
 				</ScrollView>
 			</View>
+
+			<CustomAlertModal
+				visible={isLogoutModalVisible}
+				title="Sign out"
+				message="Are you sure you want to sign out?"
+				onCancel={() => setIsLogoutModalVisible(false)}
+				onConfirm={() => {
+					setIsLogoutModalVisible(false);
+					dispatch(logoutUser());
+				}}
+			/>
 		</View>
 
 	)

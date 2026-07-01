@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === "ios" ? 5 : 5,
     backgroundColor: colors.white,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.gray800, // Mimic shadow/border on default headers
+    borderBottomColor: colors.gray200, // Mimic shadow/border on default headers
   },
   backButton: {
     flexDirection: "row",

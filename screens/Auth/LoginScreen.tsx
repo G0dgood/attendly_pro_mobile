@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   TextInput,
+  Linking,
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import * as LocalAuthentication from "expo-local-authentication";
@@ -254,6 +255,14 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
               )}
             </TouchableOpacity>
           )}
+
+          <TouchableOpacity
+            onPress={() => Linking.openURL('https://uat-software.outcess.com/privacy')}
+            style={styles.privacyPolicyContainer}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.privacyPolicy}>Privacy Policy</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -389,6 +398,17 @@ const styles = StyleSheet.create({
     // backgroundColor: colors.accent_blue_light || "#E3F2FD",
     // borderColor: colors.accent_blue,
     // borderWidth: 2,
+  },
+  privacyPolicyContainer: {
+    alignSelf: "flex-end",
+    marginTop: 24,
+    paddingVertical: 8,
+  },
+  privacyPolicy: {
+    fontFamily: "Inter",
+    fontSize: 12,
+    color: colors.gray500,
+    textDecorationLine: "underline",
   },
 });
 
